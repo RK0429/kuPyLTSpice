@@ -1,8 +1,11 @@
 from PyLTSpice import SimRunner
 from PyLTSpice import AscEditor
 
-# Force another simulatior
-simulator = r"C:\Program Files\LTC\LTspiceXVII\XVIIx64.exe"
+# Force another simulator - uncomment the appropriate line for your OS or let PyLTSpice auto-detect it
+# Windows path
+# simulator = r"C:\Program Files\LTC\LTspiceXVII\XVIIx64.exe"
+# Mac OS path
+# simulator = r"/Applications/LTspice.app/Contents/MacOS/LTspice"
 
 # select spice model
 LTC = SimRunner(output_folder='./temp')
