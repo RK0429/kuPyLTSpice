@@ -20,5 +20,6 @@
 """
 
 """
-from spicelib.sim.process_callback import ProcessCallback
+from kupicelib.sim.process_callback import ProcessCallback
 
+__all__ = ["ProcessCallback"]
