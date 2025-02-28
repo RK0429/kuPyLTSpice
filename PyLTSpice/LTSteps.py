@@ -17,4 +17,4 @@
 #
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
-print("LTSteps.py was moved into the spicelib package.")
+print("LTSteps.py was moved into the kupicelib package.")
