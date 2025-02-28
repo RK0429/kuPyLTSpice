@@ -14,8 +14,9 @@ homepage = "https://github.com/nunobrum/PyLTSpice"
 keywords = ["ltspice", "simulation", "automation"]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<4.0"
-spicelib = ">=1.4.1"
+python = ">=3.10,<4.0"
+kupicelib = ">=1.4.1"
+kupicelib = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.0"
@@ -34,9 +35,9 @@ authors = [
 description = "A set of tools to Automate LTSpice simulations"
 readme = "README.md"
 license = { file="LICENSE" }
-requires-python = ">=3.9,<4.0"
+requires-python = ">=3.10,<4.0"
 dependencies = [
-    "spicelib>=1.4.1",
+    "kupicelib>=1.4.1",
 ]
 classifiers=[
     "Programming Language :: Python :: 3",

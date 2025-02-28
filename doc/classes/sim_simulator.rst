@@ -1,7 +1,7 @@
 Simulators
 ==========
 
-.. autoclass:: spicelib.sim.simulator.Simulator
+.. autoclass:: kupicelib.sim.simulator.Simulator
    :members:
    :undoc-members:
    :show-inheritance:

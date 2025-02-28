@@ -17,7 +17,7 @@
 #
 # -------------------------------------------------------------------------------
 
-from spicelib.utils.sweep_iterators import *
+from kupicelib.utils.sweep_iterators import *
 
 # ======================== Andreas Kaeberlein Iterator =========================
 

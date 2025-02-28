@@ -7,5 +7,5 @@ SimRunner
    :show-inheritance:
 
 
-.. autoclass:: spicelib.sim.run_task.RunTask
+.. autoclass:: kupicelib.sim.run_task.RunTask
    :members:

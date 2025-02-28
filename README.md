@@ -1,7 +1,7 @@
 # README #
 
 PyLTSpice is a toolchain of python utilities design to interact with LTSpice Electronic Simulator.
-It is mostly based on the spicelib package, being the main difference to it is
+It is mostly based on the kupicelib package, being the main difference to it is
 the fact that LTSpice is automatically selected to perform all simulations.
 
 ## What is contained in this repository ##
@@ -427,7 +427,7 @@ Options:
 
 ### run_server.exe ###
 
-This command line tool was moved to the spicelib package.
+This command line tool was moved to the kupicelib package.
 
 ### SemiDevOpReader.py ###
 
@@ -465,12 +465,12 @@ _Make sure to initialize the root logger before importing the library to be able
 
 ## To whom do I talk to? ##
 
-For support and improvement requests please open an Issue in [GitHub spicelib issues](https://github.com/nunobrum/spicelib/issues)
+For support and improvement requests please open an Issue in [GitHub kupicelib issues](https://github.com/nunobrum/kupicelib/issues)
 
 ## History ##
 
 * Version 5.4.2
-  * Imported changes from spicelib 1.4.1 (Summary)
+  * Imported changes from kupicelib 1.4.1 (Summary)
     * Added `get_all_parameter_names()` function to all editors (#159)
     * Compatibility with LTspice 24+
     * Fixed Problem with .PARAM regex.
@@ -496,25 +496,25 @@ For support and improvement requests please open an Issue in [GitHub spicelib is
   * Bugfix: Parsing netlists with extensions other than .net didn't work properly
 * Version 5.3.2
   * Correction on the readthedocs webhook configuration
-  * Alignement with the spicelib 1.2.1
+  * Alignement with the kupicelib 1.2.1
 * Version 5.3.1
   * Bugfixes
     * Updates on the README.md file. Issue #137
     * Hierarchical support on AscEditor. Issue #138
   * Rich format is only used if the user has it already installed. Issue #136
 * Version 5.3.0
-  * Hierarchical Support (Aligning with the spicelib 1.1.1)
+  * Hierarchical Support (Aligning with the kupicelib 1.1.1)
 * Version 5.2.3
-  * Updating loggers to use the "spicelib" IDs.
+  * Updating loggers to use the "kupicelib" IDs.
   * Fixing autodoc errors
   * Correcting Version references
 
 * Version 5.2.2
-  * Fixes on the unittests after the spicelib update to 1.0.4
+  * Fixes on the unittests after the kupicelib update to 1.0.4
 
 * Version 5.2.1
   * Correction on the run_montecarlo.py and run_worst_case.py examples.
-  * Fixes on the spicelib (Version 1.0.3)
+  * Fixes on the kupicelib (Version 1.0.3)
 
 * Version 5.2
   * SimAnalysis supporting both Qspice and LTSpice logfiles.
@@ -527,8 +527,8 @@ For support and improvement requests please open an Issue in [GitHub spicelib is
   * Deprecating SpiceEditor.write_netlist in favour of save_netlist()
 
 * Version 5.0
-  * Making this library dependent on spicelib while trying to maintain backward compatibility as much as possible.
-  PyLTspice will be kept alive and its update will be linked to the spicelib. The main difference is that using
+  * Making this library dependent on kupicelib while trying to maintain backward compatibility as much as possible.
+  PyLTspice will be kept alive and its update will be linked to the kupicelib. The main difference is that using
   PyLTspice will avert the need of having to select a simulator in all run commands.
 
 * Version 4.1.2

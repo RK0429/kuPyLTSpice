@@ -17,7 +17,7 @@
 # -------------------------------------------------------------------------------
 import logging
 
-_logger = logging.getLogger("spicelib.AscEditor")
-_logger.info("This is maintained for backward compatibility. Use spicelib.editor.asc_editor instead")
+from kupicelib.editor.asc_editor import *
 
-from spicelib.editor.asc_editor import *
+_logger = logging.getLogger("kupicelib.AscEditor")
+_logger.info("This is maintained for backward compatibility. Use kupicelib.editor.asc_editor instead")
