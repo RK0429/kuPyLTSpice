@@ -12,6 +12,10 @@
 
 import logging
 
-_logger = logging.getLogger("spicelib.LTSteps")
-_logger.info("This module is deprecated. Use spicelib.log.logfile_data instead")
-from spicelib.log.logfile_data import LogfileData, LTComplex
+from kupicelib.log.logfile_data import LogfileData, LTComplex
+
+_logger = logging.getLogger("kupicelib.LTSteps")
+_logger.info("This module is deprecated. Use kupicelib.log.logfile_data instead")
+
+# Re-export the classes
+__all__ = ["LogfileData", "LTComplex"]
