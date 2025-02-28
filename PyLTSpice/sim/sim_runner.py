@@ -94,19 +94,19 @@ simulation is finished.
 __author__ = "Nuno Canto Brum <nuno.brum@gmail.com>"
 __copyright__ = "Copyright 2020, Fribourg Switzerland"
 
-__all__ = ['SimRunner']
+__all__ = ["SimRunner"]
 
+import logging
 import sys
 from pathlib import Path
-import logging
-from typing import Union
+from typing import List, Optional, Union
 
-from spicelib.sim.sim_runner import SimRunner as SimRunnerBase
-from spicelib.sim.simulator import Simulator
+from kupicelib.sim.sim_runner import SimRunner as SimRunnerBase
+from kupicelib.sim.simulator import Simulator
 
-_logger = logging.getLogger("spicelib.SimRunner")
+_logger = logging.getLogger("kupicelib.SimRunner")
 
-END_LINE_TERM = '\n'
+END_LINE_TERM = "\n"
 
 
 class SimRunner(SimRunnerBase):
@@ -132,8 +132,15 @@ class SimRunner(SimRunnerBase):
 
     """
 
-    def __init__(self, *, simulator=None, parallel_sims: int = 4, timeout: float = 600.0, verbose=False,
-                 output_folder: str = None):
+    def __init__(
+        self,
+        *,
+        simulator=None,
+        parallel_sims: int = 4,
+        timeout: float = 600.0,
+        verbose=False,
+        output_folder: Optional[str] = None,
+    ):
         # The '*' in the parameter list forces the user to use named parameters for the rest of the parameters.
         # This is a good practice to avoid confusion.
 
@@ -153,25 +160,38 @@ class SimRunner(SimRunnerBase):
         # Log the platform and detected simulator
         if verbose:
             _logger.info("Platform detected: %s", sys.platform)
-            _logger.info("Using simulator: %s", getattr(simulator, 'executable', simulator))
+            _logger.info(
+                "Using simulator: %s", getattr(simulator, "executable", simulator)
+            )
 
-        super().__init__(simulator=simulator, parallel_sims=parallel_sims, timeout=timeout, verbose=verbose,
-                         output_folder=output_folder)
+        super().__init__(
+            simulator=simulator,
+            parallel_sims=parallel_sims,
+            timeout=timeout,
+            verbose=verbose,
+            output_folder=output_folder,
+        )
 
-    def create_netlist(self, asc_file: Union[str, Path], cmd_line_args: list = None):
+    def create_netlist(
+        self, asc_file: Union[str, Path], cmd_line_args: Optional[List[str]] = None
+    ):
         """Creates a .net from an .asc using the LTSpice -netlist command line"""
         if not isinstance(asc_file, Path):
             asc_file = Path(asc_file)
-        if asc_file.suffix == '.asc':
+        if asc_file.suffix == ".asc":
             if self.verbose:
                 _logger.info("Creating Netlist")
 
             # Platform-specific logging
-            if self.verbose and sys.platform == 'darwin':
-                _logger.info("Creating netlist on MacOS using LTSpice at: %s",
-                             getattr(self.simulator, 'executable', 'unknown'))
+            if self.verbose and sys.platform == "darwin":
+                _logger.info(
+                    "Creating netlist on MacOS using LTSpice at: %s",
+                    getattr(self.simulator, "executable", "unknown"),
+                )
 
-            return self.simulator.create_netlist(asc_file, cmd_line_switches=cmd_line_args)
+            return self.simulator.create_netlist(
+                asc_file, cmd_line_switches=cmd_line_args
+            )
         else:
             _logger.warning("Unable to create the Netlist from %s" % asc_file)
             return None
