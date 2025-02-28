@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding=utf-8
 
+import logging
+import os
+
 # -------------------------------------------------------------------------------
 #    ____        _   _____ ____        _
 #   |  _ \ _   _| | |_   _/ ___| _ __ (_) ___ ___
@@ -18,20 +21,24 @@
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
 import sys
-import os
-import logging
 from pathlib import Path
-from typing import Union, Optional
+from typing import Any, List, Optional, Union
 
-from spicelib.sim.simulator import run_function, Simulator
+from kupicelib.sim.simulator import Simulator, run_function
 
-_logger = logging.getLogger("spicelib.LTSpiceSimulator")
-_logger.info("This is maintained for backward compatibility. Use spicelib.sim.ltspice_simulator instead")
+_logger = logging.getLogger("kupicelib.LTSpiceSimulator")
+_logger.info(
+    "This is maintained for backward compatibility. Use kupicelib.sim.ltspice_simulator instead"
+)
 
 
-# Create a custom LTspice class that extends the base class from spicelib
+# Create a custom LTspice class that extends the base class from kupicelib
 class LTspiceCustom(Simulator):
     """LTspice simulator implementation with cross-platform support"""
+
+    # Define the class attributes required by the Simulator base class
+    spice_exe: List[str] = []
+    process_name: str = "XVIIx64.exe"  # Default process name for Windows
 
     @classmethod
     def get_default_executable(cls) -> Path:
@@ -41,61 +48,70 @@ class LTspiceCustom(Simulator):
         Returns:
             Path: Path to the LTspice executable
         """
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             # Windows default path
             return Path(r"C:\Program Files\LTC\LTspiceXVII\XVIIx64.exe")
-        elif sys.platform == 'darwin':
+        elif sys.platform == "darwin":
             # Mac OS default path
             # LTspice is typically installed in /Applications on Mac
             return Path("/Applications/LTspice.app/Contents/MacOS/LTspice")
         else:
             # Linux or other platforms - assume wine is used
             # This path will need to be adjusted for the specific system
-            _logger.warning("Platform %s is not directly supported. Assuming wine is used.", sys.platform)
-            return Path("wine")  # Just use 'wine' command and rely on user to set up correctly
+            _logger.warning(
+                "Platform %s is not directly supported. Assuming wine is used.",
+                sys.platform,
+            )
+            return Path(
+                "wine"
+            )  # Just use 'wine' command and rely on user to set up correctly
 
     @classmethod
-    def create_from(cls, exec_path: Optional[Union[str, Path]] = None) -> 'LTspiceCustom':
+    def create_from(cls, path_to_exe, process_name=None):
         """
-        Creates a new LTspice simulator instance with the given executable path
+        Creates a simulator class from a path to the simulator executable
 
         Args:
-            exec_path: Path to the LTspice executable or None to use default
+            path_to_exe: Path to the LTspice executable or None to use default
+            process_name: Optional process name for task manager identification
 
         Returns:
-            LTspiceCustom: A new LTspice simulator instance
+            Simulator: A new LTspice simulator instance
         """
-        if exec_path is None:
-            exec_path = cls.get_default_executable()
-        elif not isinstance(exec_path, Path):
-            exec_path = Path(exec_path)
+        # Use default executable if none provided
+        if path_to_exe is None:
+            path_to_exe = cls.get_default_executable()
+        elif not isinstance(path_to_exe, Path):
+            path_to_exe = Path(path_to_exe)
 
         # If on Mac, check if path exists
-        if sys.platform == 'darwin' and exec_path == cls.get_default_executable() and not exec_path.exists():
-            _logger.warning("Default LTspice executable not found at %s", exec_path)
+        if (
+            sys.platform == "darwin"
+            and path_to_exe == cls.get_default_executable()
+            and not path_to_exe.exists()
+        ):
+            _logger.warning("Default LTspice executable not found at %s", path_to_exe)
             # Try alternative locations
             alt_paths = [
                 Path("/Applications/LTspice.app/Contents/MacOS/LTspice"),
-                Path(os.path.expanduser("~/Applications/LTspice.app/Contents/MacOS/LTspice"))
+                Path(
+                    os.path.expanduser(
+                        "~/Applications/LTspice.app/Contents/MacOS/LTspice"
+                    )
+                ),
             ]
             for path in alt_paths:
                 if path.exists():
                     _logger.info("Found LTspice executable at %s", path)
-                    exec_path = path
+                    path_to_exe = path
                     break
 
-        return LTspiceCustom(str(exec_path))
+        # Call parent class's create_from method
+        return super().create_from(str(path_to_exe), process_name)
 
-    def __init__(self, executable_path: str):
-        """
-        Initialize the LTspice simulator with the given executable path
-
-        Args:
-            executable_path: Path to the LTspice executable
-        """
-        super().__init__(executable_path)
-
-    def create_netlist(self, asc_file: Union[str, Path], cmd_line_switches: Optional[list] = None) -> Path:
+    def create_netlist(
+        self, asc_file: Union[str, Path], cmd_line_switches: Optional[list] = None
+    ) -> Path:
         """
         Create a netlist from an ASC file
 
@@ -119,17 +135,19 @@ class LTspiceCustom(Simulator):
         args.append(str(asc_file))
 
         # On Mac, we need to use the actual executable
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             # Run LTspice to create the netlist
-            run_function(self.executable, args)
+            run_function(self.spice_exe[0], args)
         else:
             # On Windows and Linux (wine)
-            run_function(self.executable, args)
+            run_function(self.spice_exe[0], args)
 
         # Return the path to the created netlist file
         return asc_file.with_suffix(".net")
 
-    def run_netlist(self, netlist_file: Union[str, Path], cmd_line_switches: Optional[list] = None) -> bool:
+    def run_netlist(
+        self, netlist_file: Union[str, Path], cmd_line_switches: Optional[list] = None
+    ) -> bool:
         """
         Run a simulation on a netlist file
 
@@ -153,7 +171,81 @@ class LTspiceCustom(Simulator):
         args.append(str(netlist_file))
 
         # Run LTspice to run the simulation
-        return run_function(self.executable, args) == 0
+        return run_function(self.spice_exe[0], args) == 0
+
+    @classmethod
+    def run(
+        cls,
+        netlist_file: Union[str, Path],
+        cmd_line_switches: Optional[List[Any]] = None,
+        timeout: Optional[float] = None,
+        stdout=None,
+        stderr=None,
+        exe_log: bool = False,
+    ) -> int:
+        """
+        Run a simulation on a netlist file (required abstract method implementation)
+
+        Args:
+            netlist_file: Path to the netlist file
+            cmd_line_switches: Additional command line switches
+            timeout: Timeout for the simulation
+            stdout: Where to redirect stdout
+            stderr: Where to redirect stderr
+            exe_log: Whether to log the execution
+
+        Returns:
+            int: Return code of the simulation
+        """
+        if cmd_line_switches is None:
+            cmd_line_switches = []
+
+        netlist_path = (
+            Path(netlist_file) if not isinstance(netlist_file, Path) else netlist_file
+        )
+
+        # Build command line arguments
+        args = cls.spice_exe + ["-b"]  # Batch mode
+        args.extend(cmd_line_switches)
+        args.append(str(netlist_path))
+
+        if exe_log:
+            _logger.info(f"Running LTspice simulation on {netlist_path}")
+
+        # Run LTspice to run the simulation
+        return run_function(args, timeout=timeout, stdout=stdout, stderr=stderr)
+
+    @classmethod
+    def valid_switch(cls, switch, switch_param) -> list:
+        """
+        Validate LTspice command line switches (required abstract method implementation)
+
+        Args:
+            switch: The switch to validate
+            switch_param: Parameters for the switch
+
+        Returns:
+            list: List of validated switches
+        """
+        # Basic LTspice valid switches
+        valid_switches = {
+            "-b": None,  # Run in batch mode
+            "-netlist": None,  # Generate netlist
+            "-run": None,  # Run the simulation
+            "-ascii": None,  # Output results in ASCII format
+            "-log": None,  # Create a log file
+            "-quiet": None,  # Run quietly
+        }
+
+        if switch in valid_switches:
+            if valid_switches[switch] is None:
+                return [switch]
+            elif switch_param is not None:
+                return [switch, str(switch_param)]
+
+        # If we get here, the switch is not valid
+        _logger.warning(f"Invalid LTspice switch: {switch}")
+        return []
 
 
 # Replace the imported LTspice with our custom implementation
