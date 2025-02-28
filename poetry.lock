@@ -360,13 +360,13 @@ files = [
 
 [[package]]
 name = "kupicelib"
-version = "1.0.0"
+version = "1.0.1"
 description = "A modified version of kupicelib for automating Spice simulations"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "kupicelib-1.0.0-py3-none-any.whl", hash = "sha256:d9013f96343a0dae3d83da57df137c0f4fbd8942c989a02dd811c61401fce99c"},
-    {file = "kupicelib-1.0.0.tar.gz", hash = "sha256:003c4930d3441615d72585fdc33231ecc2aa1cf1fe4ca85940dcfdb5ab92f63e"},
+    {file = "kupicelib-1.0.1-py3-none-any.whl", hash = "sha256:e47f4a2faa3f3abf9c6870e0f8f5b36d914581e152df17759ff6110d3323d3b6"},
+    {file = "kupicelib-1.0.1.tar.gz", hash = "sha256:7984b97411610ee2b53e1c2f134aec7bbd1b837297b06cc827c603377694e587"},
 ]
 
 [package.dependencies]
