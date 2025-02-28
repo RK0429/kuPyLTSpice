@@ -12,7 +12,16 @@
 # -------------------------------------------------------------------------------
 import logging
 
-_logger = logging.getLogger("spicelib.LTSteps")
-_logger.info("This module is maintained for backward compatibility. Use spicelib.log.ltsteps instead")
+from kupicelib.log.ltsteps import (
+    LTSpiceExport,
+    LTSpiceLogReader,
+    reformat_LTSpice_export,
+)
 
-from spicelib.log.ltsteps import reformat_LTSpice_export, LTSpiceExport, LTSpiceLogReader
+_logger = logging.getLogger("kupicelib.LTSteps")
+_logger.info(
+    "This module is maintained for backward compatibility. Use kupicelib.log.ltsteps instead"
+)
+
+# Re-export the classes
+__all__ = ["LTSpiceExport", "LTSpiceLogReader", "reformat_LTSpice_export"]
