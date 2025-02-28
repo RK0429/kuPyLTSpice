@@ -17,4 +17,4 @@
 # Created:     17-01-2017
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
-print("rawplot.py was moved into the spicelib package.")
+print("rawplot.py was moved into the kupicelib package.")
