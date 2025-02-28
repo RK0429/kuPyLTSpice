@@ -8,9 +8,9 @@ from kupicelib.log.ltsteps import LTSpiceLogReader
 from kupicelib.raw.raw_read import RawRead, SpiceReadException
 from kupicelib.raw.raw_write import RawWrite, Trace
 
-from PyLTSpice.sim.ltspice_simulator import LTspice
-from PyLTSpice.sim.sim_batch import SimCommander
-from PyLTSpice.sim.sim_runner import SimRunner
+from kuPyLTSpice.sim.ltspice_simulator import LTspice
+from kuPyLTSpice.sim.sim_batch import SimCommander
+from kuPyLTSpice.sim.sim_runner import SimRunner
 
 
 def all_loggers():
