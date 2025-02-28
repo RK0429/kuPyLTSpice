@@ -17,4 +17,4 @@
 # Created:     10-08-2023
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
-print("run_server.py was moved into the spicelib package.")
+print("run_server.py was moved into the kupicelib package.")
