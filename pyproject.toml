@@ -15,7 +15,7 @@ keywords = ["ltspice", "simulation", "automation"]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-kupicelib = ">=1.4.1"
+spicelib = ">=1.4.1"
 kupicelib = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
@@ -37,7 +37,7 @@ readme = "README.md"
 license = { file="LICENSE" }
 requires-python = ">=3.10,<4.0"
 dependencies = [
-    "kupicelib>=1.4.1",
+    "spicelib>=1.4.1",
 ]
 classifiers=[
     "Programming Language :: Python :: 3",
