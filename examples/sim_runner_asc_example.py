@@ -1,5 +1,4 @@
-from PyLTSpice import SimRunner
-from PyLTSpice import AscEditor
+from kuPyLTSpice import AscEditor, SimRunner
 
 # Force another simulator - uncomment the appropriate line for your OS or let PyLTSpice auto-detect it
 # Windows path
@@ -8,26 +7,23 @@ from PyLTSpice import AscEditor
 # simulator = r"/Applications/LTspice.app/Contents/MacOS/LTspice"
 
 # select spice model
-LTC = SimRunner(output_folder='./temp')
+LTC = SimRunner(output_folder="./temp")
 
-netlist = AscEditor('./testfiles/Batch_Test.asc')
+netlist = AscEditor("./testfiles/Batch_Test.asc")
 # set default arguments
 netlist.set_parameters(res=0, cap=100e-6)
-netlist.set_component_value('R2', '2k')  # Modifying the value of a resistor
-netlist.set_component_value('R1', '4k')
-netlist.set_component_value('V3', "SINE(0 1 3k 0 0 0)")
+netlist.set_component_value("R2", "2k")  # Modifying the value of a resistor
+netlist.set_component_value("R1", "4k")
+netlist.set_component_value("V3", "SINE(0 1 3k 0 0 0)")
 
-netlist.add_instructions(
-    "; Simulation settings",
-    ";.param run = 0"
-)
-netlist.set_parameter('run', 0)
+netlist.add_instructions("; Simulation settings", ";.param run = 0")
+netlist.set_parameter("run", 0)
 
-for opamp in ('AD712', 'AD820'):
-    netlist.set_element_model('U1', opamp)
+for opamp in ("AD712", "AD820"):
+    netlist.set_element_model("U1", opamp)
     for supply_voltage in (5, 10, 15):
-        netlist.set_component_value('V1', supply_voltage)
-        netlist.set_component_value('V2', -supply_voltage)
+        netlist.set_component_value("V1", supply_voltage)
+        netlist.set_component_value("V2", -supply_voltage)
         print("simulating OpAmp", opamp, "Voltage", supply_voltage)
         LTC.run(netlist)
 
@@ -39,8 +35,8 @@ for raw, log in LTC:
     # ...
 
 # Sim Statistics
-print('Successful/Total Simulations: ' + str(LTC.okSim) + '/' + str(LTC.runno))
+print("Successful/Total Simulations: " + str(LTC.okSim) + "/" + str(LTC.runno))
 
 enter = input("Press enter to delete created files")
-if enter == '':
+if enter == "":
     LTC.file_cleanup()
