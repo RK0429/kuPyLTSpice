@@ -20,4 +20,7 @@
 """
 Defines base classes for the RAW file data structures.
 """
-from kupicelib.raw.raw_classes import *
+from kupicelib.raw.raw_classes import Axis, TraceRead
+
+# Re-export the classes
+__all__ = ["Axis", "TraceRead"]
