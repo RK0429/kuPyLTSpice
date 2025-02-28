@@ -17,4 +17,6 @@
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
 
-from spicelib.sim.tookit.worst_case import WorstCaseAnalysis
+from kupicelib.sim.tookit.worst_case import WorstCaseAnalysis
+
+__all__ = ["WorstCaseAnalysis"]
