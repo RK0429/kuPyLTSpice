@@ -96,16 +96,15 @@ __copyright__ = "Copyright 2020, Fribourg Switzerland"
 
 __all__ = ['SimRunner']
 
+import sys
 from pathlib import Path
-
 import logging
 from typing import Union
-
-_logger = logging.getLogger("spicelib.SimRunner")
 
 from spicelib.sim.sim_runner import SimRunner as SimRunnerBase
 from spicelib.sim.simulator import Simulator
 
+_logger = logging.getLogger("spicelib.SimRunner")
 
 END_LINE_TERM = '\n'
 
@@ -139,15 +138,23 @@ class SimRunner(SimRunnerBase):
         # This is a good practice to avoid confusion.
 
         # Gets a simulator.
-        from ..sim.ltspice_simulator import LTspice  # Used for defaults
+        # Import our custom LTspice implementation which has Mac support
+        from PyLTSpice.sim.ltspice_simulator import LTspice as CustomLTspice
+
         if simulator is None:
-            simulator = LTspice
+            simulator = CustomLTspice
         elif isinstance(simulator, (str, Path)):
-            simulator = LTspice.create_from(simulator)
+            simulator = CustomLTspice.create_from(simulator)
         elif issubclass(simulator, Simulator):
             simulator = simulator
         else:
-            simulator = LTspice
+            simulator = CustomLTspice
+
+        # Log the platform and detected simulator
+        if verbose:
+            _logger.info("Platform detected: %s", sys.platform)
+            _logger.info("Using simulator: %s", getattr(simulator, 'executable', simulator))
+
         super().__init__(simulator=simulator, parallel_sims=parallel_sims, timeout=timeout, verbose=verbose,
                          output_folder=output_folder)
 
@@ -158,6 +165,12 @@ class SimRunner(SimRunnerBase):
         if asc_file.suffix == '.asc':
             if self.verbose:
                 _logger.info("Creating Netlist")
+
+            # Platform-specific logging
+            if self.verbose and sys.platform == 'darwin':
+                _logger.info("Creating netlist on MacOS using LTSpice at: %s",
+                             getattr(self.simulator, 'executable', 'unknown'))
+
             return self.simulator.create_netlist(asc_file, cmd_line_switches=cmd_line_args)
         else:
             _logger.warning("Unable to create the Netlist from %s" % asc_file)

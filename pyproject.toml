@@ -1,9 +1,30 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "PyLTSpice"
+version = "5.4.2"
+description = "A set of tools to Automate LTSpice simulations"
+authors = ["Nuno Brum <me@nunobrum.com>"]
+license = "GPL-3.0-only"
+readme = "README.md"
+repository = "https://github.com/nunobrum/PyLTSpice"
+homepage = "https://github.com/nunobrum/PyLTSpice"
+keywords = ["ltspice", "simulation", "automation"]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<4.0"
+spicelib = ">=1.4.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.0.0"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/nunobrum/PyLTSpice/issues"
+"Author" = "https://www.nunobrum.com/"
+
+# Keeping setuptools configuration for compatibility
 [project]
 name = "PyLTSpice"
 version = "5.4.2"
@@ -13,7 +34,7 @@ authors = [
 description = "A set of tools to Automate LTSpice simulations"
 readme = "README.md"
 license = { file="LICENSE" }
-requires-python = ">=3.8"
+requires-python = ">=3.9,<4.0"
 dependencies = [
     "spicelib>=1.4.1",
 ]
