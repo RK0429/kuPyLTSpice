@@ -122,7 +122,7 @@ values, as exemplified below for a .TRAN simulation.
      ...
 
      <timestamp T><trace1 T><trace2 T><trace3 T>...<traceN T>
-     
+
 Depending on the type of simulation the type of data changes.
 On TRAN simulations the timestamp is always stored as 8 bytes float (double) and trace values as 4 bytes (single).
 On AC simulations the data is stored in complex format, which includes a real part and an imaginary part, each with 8
@@ -207,9 +207,13 @@ __author__ = "Nuno Canto Brum <nuno.brum@gmail.com>"
 __copyright__ = "Copyright 2022, Fribourg Switzerland"
 
 import logging
-_logger = logging.getLogger("spicelib.RawRead")
-_logger.info("This is maintained for backward compatibility. Use spicelib.raw.raw_read instead")
 
-from spicelib.raw.raw_read import RawRead
+from kupicelib.raw.raw_read import RawRead
+
+_logger = logging.getLogger("kupicelib.RawRead")
+_logger.info(
+    "This is maintained for backward compatibility. Use kupicelib.raw.raw_read instead"
+)
+
 # Backward compatibility naming
 LTSpiceRawRead = RawRead
