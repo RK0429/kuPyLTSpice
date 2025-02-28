@@ -17,7 +17,11 @@
 # -------------------------------------------------------------------------------
 import logging
 
-from kupicelib.editor.asc_editor import *
+from kupicelib.editor.asc_editor import AscEditor
+
+__all__ = ["AscEditor"]  # Explicitly list what is being re-exported
 
 _logger = logging.getLogger("kupicelib.AscEditor")
-_logger.info("This is maintained for backward compatibility. Use kupicelib.editor.asc_editor instead")
+_logger.info(
+    "This is maintained for backward compatibility. Use kupicelib.editor.asc_editor instead"
+)
