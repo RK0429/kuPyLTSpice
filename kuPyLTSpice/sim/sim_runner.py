@@ -146,7 +146,7 @@ class SimRunner(SimRunnerBase):
 
         # Gets a simulator.
         # Import our custom LTspice implementation which has Mac support
-        from PyLTSpice.sim.ltspice_simulator import LTspice as CustomLTspice
+        from kuPyLTSpice.sim.ltspice_simulator import LTspice as CustomLTspice
 
         if simulator is None:
             simulator = CustomLTspice
