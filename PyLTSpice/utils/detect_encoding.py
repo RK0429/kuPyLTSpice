@@ -22,4 +22,4 @@ International Support functions
 Not using other known unicode detection libraries because we don't need something so complicated. LTSpice only supports
 for the time being a reduced set of encodings.
 """
-from spicelib.utils.detect_encoding import EncodingDetectError, detect_encoding
+from kupicelib.utils.detect_encoding import EncodingDetectError, detect_encoding
