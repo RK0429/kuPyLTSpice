@@ -17,5 +17,6 @@
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
 
-from spicelib.sim.tookit.montecarlo import Montecarlo
+from kupicelib.sim.tookit.montecarlo import Montecarlo
 
+__all__ = ["Montecarlo"]
