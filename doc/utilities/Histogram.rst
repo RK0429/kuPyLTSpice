@@ -7,7 +7,7 @@ this module.
 
 .. code-block:: text
 
-    python -m PyLTSpice.Histogram [options] [data_file] TRACE
+    python -m kuPyLTSpice.Histogram [options] [data_file] TRACE
 
 The help can be obtained by calling the script without arguments
 

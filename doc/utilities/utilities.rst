@@ -2,9 +2,9 @@
 Utilities
 =========
 
-PyLTSpice contains some utilities that can be run using the command line.
+kuPyLTSpice contains some utilities that can be run using the command line.
 
-E.g.: ``python -m PyLTSpice.Histogram``
+E.g.: ``python -m kuPyLTSpice.Histogram``
 
 
 .. toctree::

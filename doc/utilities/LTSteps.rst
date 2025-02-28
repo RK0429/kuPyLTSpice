@@ -16,8 +16,8 @@ handled by this command line tool.
       LTSteps.py can be used to retrieve both step and measurement information from log files.
 
     + txt files - Files exported from the Plot File -> Export data as text menu. This file is an text file where data is
-      saved in the text format. The reason to use PyLTSpice instead of another popular lib as pandas, is because the data
-      format when .STEPS are used in the simulation is not not very practical. The PyLTSpice LTSteps.py can be used to
+      saved in the text format. The reason to use kuPyLTSpice instead of another popular lib as pandas, is because the data
+      format when .STEPS are used in the simulation is not not very practical. The kuPyLTSpice LTSteps.py can be used to
       reformat the text, so that the run parameter is added to the data as an additional column instead of a table
       divider. Please Check LTSpiceExport class for more information.
 

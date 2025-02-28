@@ -24,8 +24,8 @@ To simplify this process, the Montecarlo class can be used as exemplified below:
 
 .. code-block:: python
 
-    from PyLTSpice import AscEditor  # Imports the class that manipulates the asc file
-    from PyLTSpice.sim.tookit.montecarlo import Montecarlo  # Imports the Montecarlo toolkit class
+    from kuPyLTSpice import AscEditor  # Imports the class that manipulates the asc file
+    from kuPyLTSpice.sim.tookit.montecarlo import Montecarlo  # Imports the Montecarlo toolkit class
 
     sallenkey = AscEditor("./testfiles/sallenkey.asc")  # Reads the asc file into memory
 
@@ -77,8 +77,8 @@ Similarly, the worst case analysis can also be setup by using the class WorstCas
 
 .. code-block:: python
 
-    from PyLTSpice import AscEditor  # Imports the class that manipulates the asc file
-    from PyLTSpice.sim.tookit.worst_case import WorstCaseAnalysis
+    from kuPyLTSpice import AscEditor  # Imports the class that manipulates the asc file
+    from kuPyLTSpice.sim.tookit.worst_case import WorstCaseAnalysis
 
     sallenkey = AscEditor("./testfiles/sallenkey.asc")  # Reads the asc file into memory
 

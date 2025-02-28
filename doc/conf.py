@@ -12,29 +12,31 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
-sys.path.append(os.path.abspath('../doc/media'))
+
+sys.path.insert(0, os.path.abspath(".."))
+sys.path.append(os.path.abspath("../doc/media"))
 
 print(sys.path)
 
 # -- Project information -----------------------------------------------------
 
-project = 'PyLTSpice'
-copyright = '2024, Nuno Brum'
-author = 'Nuno Brum'
+project = "kuPyLTSpice"
+copyright = "2024, Ryota Kobayashi"
+author = "Ryota Kobayashi"
 
-release = '5.4.2'
+release = "1.0.0"
 
 try:
-	# Read the version from the .toml file
-	from toml import load
-	with open('../pyproject.toml') as f:
-		pyproject = load(f)
-		project = pyproject['project']['name']
-		release = pyproject['project']['version']
-		author = pyproject['project']['authors'][0]['name']
+    # Read the version from the .toml file
+    from toml import load
+
+    with open("../pyproject.toml") as f:
+        pyproject = load(f)
+        project = pyproject["project"]["name"]
+        release = pyproject["project"]["version"]
+        author = pyproject["project"]["authors"][0]["name"]
 except:
-	pass
+    pass
 
 
 # -- General configuration ---------------------------------------------------
@@ -43,31 +45,31 @@ except:
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-	# 'docxbuilder',
-	# 'sphinx-docxbuilder',
-	'sphinx.ext.todo', 
-	'sphinx.ext.viewcode', 
-	'sphinx.ext.autodoc',
-	#'sphinx.ext.autosummary',
+    # 'docxbuilder',
+    # 'sphinx-docxbuilder',
+    "sphinx.ext.todo",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.autodoc",
+    #'sphinx.ext.autosummary',
     #'rinoh.frontend.sphinx'
 ]
 
-#autodoc_default_flags = ['members']
-#autosummary_generate = True
+# autodoc_default_flags = ['members']
+# autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ".rst"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['doc_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["doc_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -75,9 +77,9 @@ exclude_patterns = ['doc_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'agogo'
+html_theme = "agogo"
 html_theme_options = {
-    'rightsidebar' : False,
+    "rightsidebar": False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,

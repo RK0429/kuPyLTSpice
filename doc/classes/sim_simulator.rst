@@ -10,7 +10,7 @@ Simulators
 LTSpice
 =======
 
-.. autoclass:: PyLTSpice.sim.ltspice_simulator.LTspice
+.. autoclass:: kuPyLTSpice.sim.ltspice_simulator.LTspice
    :members:
    :undoc-members:
    :show-inheritance:
