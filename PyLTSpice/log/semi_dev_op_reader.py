@@ -18,4 +18,7 @@
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
 
-from spicelib.log.semi_dev_op_reader import opLogReader
+from kupicelib.log.semi_dev_op_reader import opLogReader
+
+# Re-export the classes
+__all__ = ["opLogReader"]
