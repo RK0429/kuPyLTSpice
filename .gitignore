@@ -1,7 +1,7 @@
 .vscode/
 .idea/
 __pycache__/
-PyLTSpice.egg-info
+kuPyLTSpice.egg-info
 venv
 .venv
 .python-version
