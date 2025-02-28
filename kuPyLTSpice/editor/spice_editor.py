@@ -23,7 +23,7 @@ from typing import Any, Callable, Optional, Type, Union
 from kupicelib.editor.spice_editor import SpiceEditor as SpiceEditorBase
 
 # Use our custom LTspice implementation with Mac support
-from PyLTSpice.sim.ltspice_simulator import LTspice
+from kuPyLTSpice.sim.ltspice_simulator import LTspice
 
 _logger = logging.getLogger("kupicelib.SpiceEditor")
 _logger.info(
@@ -43,7 +43,7 @@ class SpiceEditor(SpiceEditorBase):
                 _logger.info("Creating netlist on MacOS using LTSpice")
 
             # Create a LTspice instance to use its create_netlist method
-            ltspice_instance = LTspice.create_from()
+            ltspice_instance = LTspice.create_from(None)
             ltspice_instance.create_netlist(netlist_file)
             netlist_file = netlist_file.with_suffix(".net")
         super().__init__(netlist_file, encoding, create_blank)
