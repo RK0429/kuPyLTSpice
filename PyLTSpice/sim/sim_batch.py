@@ -100,11 +100,10 @@ __copyright__ = "Copyright 2020, Fribourg Switzerland"
 import logging
 import os
 from pathlib import Path
-from typing import Any, Callable, Optional, Type, Union, cast
+from typing import Any, Callable, Optional, Type, Union
 
 from kupicelib.editor.spice_editor import SpiceEditor
 from kupicelib.sim.process_callback import ProcessCallback
-from kupicelib.sim.run_task import RunTask
 from kupicelib.sim.sim_runner import SimRunner
 from kupicelib.sim.simulator import Simulator
 
@@ -151,7 +150,9 @@ class SimCommander(SpiceEditor):
 
         # Handle .asc files by creating a netlist
         if netlist_file_path.suffix == ".asc":
-            netlist_file_path = actual_simulator.create_netlist(netlist_file_path)
+            # Create an instance of the simulator to create the netlist
+            simulator_instance = actual_simulator.create_from(None)
+            netlist_file_path = simulator_instance.create_netlist(netlist_file_path)
 
         super().__init__(netlist_file_path, encoding)
 
@@ -231,16 +232,14 @@ class SimCommander(SpiceEditor):
         for option in args:
             self.runner.add_command_line_switch(option)
 
-    # Use parent's run method signature but override the implementation
     def run(
         self,
         wait_resource: bool = True,
-        callback: Optional[
-            Union[Type[ProcessCallback], Callable[[Any, Any], Any]]
-        ] = None,
-        timeout: Optional[float] = 600.0,
+        callback: Optional[Union[Type[Any], Callable[[Path, Path], Any]]] = None,
+        timeout: Optional[float] = 600,
         run_filename: Optional[str] = None,
-    ) -> RunTask:
+        simulator=None,
+    ):
         """
         Run the simulation with the updated netlist.
 
@@ -250,26 +249,29 @@ class SimCommander(SpiceEditor):
         :param callback: Optional callback to process the results
         :param timeout: Timeout in seconds for the simulation
         :param run_filename: Optional filename for the netlist
+        :param simulator: Optional simulator to use
         :return: A RunTask object
         """
         # Adapt callback if necessary
-        adapted_callback: Optional[
-            Union[Type[ProcessCallback], Callable[[Path, Path], Any]]
-        ] = None
+        adapted_callback: Optional[Union[Type[Any], Callable[[Path, Path], Any]]] = None
 
         if callback is not None:
             if isinstance(callback, type) and issubclass(callback, ProcessCallback):
                 adapted_callback = callback
             elif callable(callback):
                 # Create a wrapper function that adapts the callback to the expected signature
+                # For backward compatibility, convert Path objects to strings
                 def adapted_callback_wrapper(raw_file: Path, log_file: Path) -> Any:
-                    return callback(str(raw_file), str(log_file))
+                    # Type: ignore is used to silence the linter errors while maintaining backward compatibility
+                    # with callbacks that expect string arguments instead of Path objects
+                    return callback(str(raw_file), str(log_file))  # type: ignore
 
                 adapted_callback = adapted_callback_wrapper
 
         # Use non-None timeout
         actual_timeout = float(timeout) if timeout is not None else 600.0
 
+        # If simulator is None, we'll use the default one from the runner
         result = self.runner.run(
             self,
             wait_resource=wait_resource,
@@ -280,17 +282,8 @@ class SimCommander(SpiceEditor):
 
         # Create a dummy RunTask if None is returned
         if result is None:
-            from ..sim.ltspice_simulator import LTspice
-
-            # Create minimal RunTask with valid parameters
-            dummy_simulator = cast(Type[Simulator], LTspice)
-            dummy_path = Path("")
-
-            # Create a simple callback function as the 4th parameter
-            def dummy_callback(raw_file: Path, log_file: Path) -> None:
-                pass
-
-            return RunTask(dummy_simulator, "", dummy_path, dummy_callback)
+            _logger.warning("Runner.run() returned None, which is unexpected.")
+            return None  # Simply return None if result is None
 
         return result
 
