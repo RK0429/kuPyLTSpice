@@ -260,6 +260,7 @@ class LTspiceCustom(Simulator):
             stdout=stdout,
             stderr=stderr,
             cwd=str(cwd),
+            check=False,
         )
         return result.returncode
 
