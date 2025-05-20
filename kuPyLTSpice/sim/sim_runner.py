@@ -189,9 +189,9 @@ class SimRunner(SimRunnerBase):
                     getattr(self.simulator, "executable", "unknown"),
                 )
 
-            return self.simulator.create_netlist(
+            return self.simulator.create_netlist(  # type: ignore[attr-defined]
                 asc_file, cmd_line_switches=cmd_line_args
             )
         else:
-            _logger.warning("Unable to create the Netlist from %s" % asc_file)
+            _logger.warning(f"Unable to create the Netlist from {asc_file}")
             return None
