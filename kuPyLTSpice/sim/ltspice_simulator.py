@@ -4,6 +4,7 @@
 import logging
 import os
 import shutil
+import subprocess
 
 # -------------------------------------------------------------------------------
 #    ____        _   _____ ____        _
@@ -251,8 +252,16 @@ class LTspiceCustom(Simulator):
         if exe_log:
             _logger.info(f"Running LTspice simulation on {netlist_path}")
 
-        # Run LTspice to run the simulation
-        return run_function(args, timeout=timeout, stdout=stdout, stderr=stderr)
+        # Run LTspice to run the simulation in the directory of the netlist file
+        cwd = netlist_path.parent
+        result = subprocess.run(
+            args,
+            timeout=timeout,
+            stdout=stdout,
+            stderr=stderr,
+            cwd=str(cwd),
+        )
+        return result.returncode
 
     @classmethod
     def valid_switch(cls, switch, switch_param) -> list:
