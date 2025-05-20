@@ -163,6 +163,10 @@ class LTspiceCustom(Simulator):
         Returns:
             Path: Path to the created netlist file
         """
+        # Ensure the spice executable is configured
+        if not cls.spice_exe:
+            # initialize with default executable
+            cls.create_from(None)
         if not isinstance(asc_file, Path):
             asc_file = Path(asc_file)
 
