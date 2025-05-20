@@ -149,8 +149,9 @@ class LTspiceCustom(Simulator):
         # Call parent class's create_from method
         return super().create_from(str(path_to_exe), process_name)
 
+    @classmethod
     def create_netlist(
-        self, asc_file: Union[str, Path], cmd_line_switches: Optional[list] = None
+        cls, asc_file: Union[str, Path], cmd_line_switches: Optional[list] = None
     ) -> Path:
         """
         Create a netlist from an ASC file
@@ -174,13 +175,8 @@ class LTspiceCustom(Simulator):
             args.extend(cmd_line_switches)
         args.append(str(asc_file))
 
-        # On Mac, we need to use the actual executable
-        if sys.platform == "darwin":
-            # Run LTspice to create the netlist
-            run_function(self.spice_exe[0], args)
-        else:
-            # On Windows and Linux (wine)
-            run_function(self.spice_exe[0], args)
+        # Invoke LTspice to create the netlist on all platforms
+        run_function(cls.spice_exe[0], args)
 
         # Return the path to the created netlist file
         return asc_file.with_suffix(".net")
