@@ -84,6 +84,24 @@ class LTspiceCustom(Simulator):
         elif not isinstance(path_to_exe, Path):
             path_to_exe = Path(path_to_exe)
 
+        # Add Windows alternative path discovery
+        if (
+            sys.platform == "win32"
+            and path_to_exe == cls.get_default_executable()
+            and not path_to_exe.exists()
+        ):
+            _logger.warning("Default LTspice executable not found at %s", path_to_exe)
+            alt_paths = [
+                Path(os.path.expanduser(r"~\AppData\Local\Programs\ADI\LTspice\LTspice.exe")),
+                Path(r"C:\Program Files\ADI\LTspice\LTspice.exe"),
+                Path(r"C:\Program Files (x86)\ADI\LTspice\LTspice.exe"),
+            ]
+            for path in alt_paths:
+                if path.exists():
+                    _logger.info("Found LTspice executable at %s", path)
+                    path_to_exe = path
+                    break
+
         # If on Mac, check if path exists
         if (
             sys.platform == "darwin"
