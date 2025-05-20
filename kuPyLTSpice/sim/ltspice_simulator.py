@@ -180,7 +180,7 @@ class LTspiceCustom(Simulator):
         args.append(str(asc_file))
 
         # Invoke LTspice to create the netlist on all platforms
-        run_function(cls.spice_exe[0], args)
+        run_function([cls.spice_exe[0]] + args)
 
         # Return the path to the created netlist file
         return asc_file.with_suffix(".net")
@@ -211,7 +211,7 @@ class LTspiceCustom(Simulator):
         args.append(str(netlist_file))
 
         # Run LTspice to run the simulation
-        return run_function(self.spice_exe[0], args) == 0
+        return run_function([self.spice_exe[0]] + args) == 0
 
     @classmethod
     def run(
