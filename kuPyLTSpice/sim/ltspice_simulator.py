@@ -3,6 +3,7 @@
 
 import logging
 import os
+import shutil
 
 # -------------------------------------------------------------------------------
 #    ____        _   _____ ____        _
@@ -123,6 +124,26 @@ class LTspiceCustom(Simulator):
                     _logger.info("Found LTspice executable at %s", path)
                     path_to_exe = path
                     break
+
+        # Try wine-based Windows installation on non-Windows platforms
+        if (
+            sys.platform in ("darwin", "linux")
+            and path_to_exe == cls.get_default_executable()
+            and not path_to_exe.exists()
+        ):
+            wine_cmd = shutil.which("wine") or shutil.which("wine64")
+            if wine_cmd:
+                wine_prefix = os.path.expanduser("~/.wine/drive_c")
+                alt_wine_paths = [
+                    Path(wine_prefix) / "Program Files" / "ADI" / "LTspice" / "LTspice.exe",
+                    Path(wine_prefix) / "Program Files (x86)" / "ADI" / "LTspice" / "LTspice.exe",
+                    Path(wine_prefix) / "Program Files" / "LTC" / "LTspiceXVII" / "XVIIx64.exe",
+                ]
+                for wpath in alt_wine_paths:
+                    if wpath.exists():
+                        _logger.info("Found LTspice executable under wine at %s", wpath)
+                        cmd = f"{wine_cmd} {wpath.as_posix()}"
+                        return super().create_from(cmd, process_name)
 
         # Call parent class's create_from method
         return super().create_from(str(path_to_exe), process_name)
