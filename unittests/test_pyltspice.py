@@ -17,22 +17,27 @@
 #
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
-"""
-@author:        Nuno Brum
-@copyright:     Copyright 2022
-@credits:       nunobrum
+"""@author:        Nuno Brum.
 
-@license:       GPLv3
-@maintainer:    Nuno Brum
-@email:         me@nunobrum.com
+@copyright:     Copyright 2022 @credits:       nunobrum
 
-@file:          test_pyltspice.py
+@license:       GPLv3 @maintainer:    Nuno Brum @email:         me@nunobrum.com
+
+@
+
+file:
+test_pyltspice.py
 @date:          2022-09-19
 
 @note           pyltspice ltsteps + sim_commander + raw_read unit test
-                  run ./test/unittests/test_pyltspice
+run ./test/unittests/test_pyltspice
 """
 
+from kuPyLTSpice.sim.sim_runner import SimRunner
+from kuPyLTSpice.sim.sim_batch import SimCommander
+from kuPyLTSpice.raw.raw_read import RawRead
+from kuPyLTSpice.log.ltsteps import LTSpiceLogReader
+from kuPyLTSpice.editor.spice_editor import SpiceEditor
 import os  # platform independent paths
 
 # ------------------------------------------------------------------------------
@@ -46,11 +51,6 @@ import unittest  # performs test
 sys.path.append(
     os.path.abspath((os.path.dirname(os.path.abspath(__file__)) + "/../"))
 )  # add project root to lib search path
-from kuPyLTSpice.editor.spice_editor import SpiceEditor
-from kuPyLTSpice.log.ltsteps import LTSpiceLogReader
-from kuPyLTSpice.raw.raw_read import RawRead
-from kuPyLTSpice.sim.sim_batch import SimCommander
-from kuPyLTSpice.sim.sim_runner import SimRunner
 
 
 def has_ltspice_detect():
@@ -82,14 +82,12 @@ print("test_dir", test_dir)
 
 
 class test_pyltspice(unittest.TestCase):
-    """Unnittesting PyLTSpice"""
+    """Unnittesting PyLTSpice."""
 
     # *****************************
     @unittest.skipIf(skip_ltspice_tests, "Skip if not in windows environment")
     def test_batch_test(self):
-        """
-        @note   inits class
-        """
+        """@note   inits class."""
         # prepare
         self.sim_files = []
         self.measures = {}
@@ -158,7 +156,7 @@ class test_pyltspice(unittest.TestCase):
 
     @unittest.skipIf(skip_ltspice_tests, "Skip if not in windows environment")
     def test_run_from_spice_editor(self):
-        """Run command on SpiceEditor"""
+        """Run command on SpiceEditor."""
         LTC = SimRunner(output_folder=test_dir + "temp/")
         # select spice model
         LTC.create_netlist(test_dir + "testfile.asc")
@@ -183,7 +181,7 @@ class test_pyltspice(unittest.TestCase):
 
     @unittest.skipIf(skip_ltspice_tests, "Skip if not in windows environment")
     def test_sim_runner(self):
-        """SimRunner and SpiceEditor singletons"""
+        """SimRunner and SpiceEditor singletons."""
 
         # Old legacy class that merged SpiceEditor and SimRunner
         def callback_function(raw_file, log_file):
@@ -219,7 +217,7 @@ class test_pyltspice(unittest.TestCase):
 
     @unittest.skipIf(False, "Execute All")
     def test_ltsteps_measures(self):
-        """LTSteps Measures from Batch_Test.asc"""
+        """LTSteps Measures from Batch_Test.asc."""
         assert_data = {
             "vout1m": [
                 -0.0186257,
@@ -379,7 +377,7 @@ class test_pyltspice(unittest.TestCase):
 
     @unittest.skipIf(False, "Execute All")
     def test_operating_point(self):
-        """Operating Point Simulation Test"""
+        """Operating Point Simulation Test."""
         if has_ltspice:
             LTC = SimCommander(test_dir + "DC op point.asc")
             raw_file, log_file = LTC.run().wait_results()
@@ -403,7 +401,7 @@ class test_pyltspice(unittest.TestCase):
 
     @unittest.skipIf(False, "Execute All")
     def test_operating_point_step(self):
-        """Operating Point Simulation with Steps"""
+        """Operating Point Simulation with Steps."""
         if has_ltspice:
             LTC = SimCommander(test_dir + "DC op point - STEP.asc")
             raw_file, log_file = LTC.run().wait_results()
@@ -421,7 +419,7 @@ class test_pyltspice(unittest.TestCase):
 
     @unittest.skipIf(False, "Execute All")
     def test_transient(self):
-        """Transient Simulation test"""
+        """Transient Simulation test."""
         if has_ltspice:
             LTC = SimCommander(test_dir + "TRAN.asc")
             raw_file, log_file = LTC.run().wait_results()
@@ -495,7 +493,7 @@ class test_pyltspice(unittest.TestCase):
 
     @unittest.skipIf(False, "Execute All")
     def test_ac_analysis(self):
-        """AC Analysis Test"""
+        """AC Analysis Test."""
         from numpy import angle, pi
 
         if has_ltspice:
@@ -508,7 +506,8 @@ class test_pyltspice(unittest.TestCase):
             log_file = test_dir + "AC_1.log"
             R1 = 100
             C1 = 10e-6
-        # Compute the RC AC response with the resistor and capacitor values from the netlist.
+        # Compute the RC AC response with the resistor and capacitor values from
+        # the netlist.
         raw = RawRead(raw_file)
         vout_trace = raw.get_trace("V(out)")
         vin_trace = raw.get_trace("V(in)")
@@ -535,7 +534,7 @@ class test_pyltspice(unittest.TestCase):
 
     @unittest.skipIf(False, "Execute All")
     def test_ac_analysis_steps(self):
-        """AC Analysis Test with steps"""
+        """AC Analysis Test with steps."""
         from numpy import angle, pi
 
         if has_ltspice:
@@ -546,7 +545,8 @@ class test_pyltspice(unittest.TestCase):
             raw_file = test_dir + "AC - STEP_1.raw"
             log_file = test_dir + "AC - STEP_1.log"
             C1 = 159.1549e-6  # 159.1549uF
-        # Compute the RC AC response with the resistor and capacitor values from the netlist.
+        # Compute the RC AC response with the resistor and capacitor values from
+        # the netlist.
         raw = RawRead(raw_file)
         vin_trace = raw.get_trace("V(in)")
         vout_trace = raw.get_trace("V(out)")

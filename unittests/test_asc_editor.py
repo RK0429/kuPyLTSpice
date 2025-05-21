@@ -1,3 +1,4 @@
+import kuPyLTSpice
 import os
 import sys
 import unittest
@@ -6,7 +7,6 @@ sys.path.append(
     os.path.abspath((os.path.dirname(os.path.abspath(__file__)) + "/../"))
 )  # add project root to lib search path
 
-import kuPyLTSpice
 
 test_dir = (
     "../examples/testfiles/"

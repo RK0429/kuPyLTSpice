@@ -1,4 +1,6 @@
 # coding=utf-8
+from time import sleep
+from random import random
 import logging
 
 try:
@@ -11,9 +13,6 @@ from kuPyLTSpice import AscEditor, SimRunner
 kuPyLTSpice.set_log_level(logging.DEBUG)
 if RichHandler:
     kuPyLTSpice.add_log_handler(RichHandler())
-
-from random import random
-from time import sleep
 
 
 def processing_data(raw_file, log_file):

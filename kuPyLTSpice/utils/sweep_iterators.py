@@ -24,9 +24,7 @@ class sweep_iterators:
 
     # *****************************
     def __init__(self):
-        """
-        Initialization
-        """
+        """Initialization."""
         self.numTotalIterations = 0  # total of iteartion if all loops are executed
         self.numCurrentIteration = 0  # current iteration
         self.iteratorEntrys = []  # list of dicts for iterator entrys
@@ -36,13 +34,10 @@ class sweep_iterators:
 
     # *****************************
     def add(self, name="", vals=[]):
-        """
-        @note               adds entry to list of iterators
+        """@note               adds entry to list of iterators.
 
-        @param name         component name in ltspice schematic
-        @param vals         component values
-        @rtype              boolean
-        @return             successful
+        @param name         component name in ltspice schematic @param vals
+        component values @rtype              boolean @return             successful
         """
         # check for valid arguments
         if 0 == len(name) or 0 == len(vals):
@@ -64,12 +59,10 @@ class sweep_iterators:
 
     # *****************************
     def done(self):
-        """
-        @note               check if iteration is done
-        @rtype              boolean
-        @retval     True    Iteration done
-        @retval     False   Iteration needs to continue
-        @return             successful
+        """@note               check if iteration is done.
+
+        @rtype              boolean @retval     True    Iteration done @retval     False
+        Iteration needs to continue @return             successful
         """
         # check for proper init
         if 0 == len(self.iteratorEntrys):
@@ -83,11 +76,9 @@ class sweep_iterators:
 
     # *****************************
     def next(self):
-        """
-        @note               creates next parameter set for sweep
+        """@note               creates next parameter set for sweep.
 
-        @rtype              dict
-        @return             parameter set
+        @rtype              dict @return             parameter set
         """
         # check for iterators
         if 0 == len(self.iteratorEntrys):

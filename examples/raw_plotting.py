@@ -14,7 +14,7 @@ from kuPyLTSpice import RawRead
 
 
 def what_to_units(whattype):
-    """Determines the unit to display on the plot Y axis"""
+    """Determines the unit to display on the plot Y axis."""
     if "voltage" in whattype:
         return "V"
     if "current" in whattype:
@@ -66,12 +66,12 @@ write_labels = True
 
 for i, trace in enumerate(traces):
     if "complex" in LTR.flags:
-        axises = axis_set[2 * i : 2 * i + 2]  # Returns two axis
+        axises = axis_set[2 * i: 2 * i + 2]  # Returns two axis
     else:
         if n_axis == 1:
             axises = [axis_set]  # Needs to return a list
         else:
-            axises = axis_set[i : i + 1]  # Returns just one axis but enclosed in a list
+            axises = axis_set[i: i + 1]  # Returns just one axis but enclosed in a list
     magnitude = True
     for ax in axises:
         ax.grid(True)

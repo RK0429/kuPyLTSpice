@@ -17,9 +17,7 @@
 # Created:     19-06-2022
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
-"""
-Defines base classes for the RAW file data structures.
-"""
+"""Defines base classes for the RAW file data structures."""
 from kupicelib.raw.raw_classes import Axis, TraceRead
 
 # Re-export the classes

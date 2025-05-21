@@ -1,16 +1,19 @@
 # coding=utf-8
 
-import sys
-
-sys.path.insert(0, "..")  # This is to allow the import from the PyLTSpice folder
-from kuPyLTSpice import SimRunner, SpiceEditor
 from kuPyLTSpice.sim.process_callback import (
     ProcessCallback,  # Importing the ProcessCallback class type
 )
+from kuPyLTSpice import SimRunner, SpiceEditor
+import sys
+
+sys.path.insert(0, "..")  # This is to allow the import from the PyLTSpice folder
 
 
 class CallbackProc(ProcessCallback):
-    """Class encapsulating the callback function. It can have whatever name."""
+    """Class encapsulating the callback function.
+
+    It can have whatever name.
+    """
 
     @staticmethod
     def callback(raw_file, log_file):

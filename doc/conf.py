@@ -35,7 +35,7 @@ try:
         project = pyproject["project"]["name"]
         release = pyproject["project"]["version"]
         author = pyproject["project"]["authors"][0]["name"]
-except:
+except BaseException:
     pass
 
 
@@ -50,8 +50,8 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
     "sphinx.ext.autodoc",
-    #'sphinx.ext.autosummary',
-    #'rinoh.frontend.sphinx'
+    # 'sphinx.ext.autosummary',
+    # 'rinoh.frontend.sphinx'
 ]
 
 # autodoc_default_flags = ['members']

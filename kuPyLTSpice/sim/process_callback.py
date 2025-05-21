@@ -17,9 +17,7 @@
 # Created:     23-04-2023
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
-"""
-
-"""
+""""""
 from kupicelib.sim.process_callback import ProcessCallback
 
 __all__ = ["ProcessCallback"]

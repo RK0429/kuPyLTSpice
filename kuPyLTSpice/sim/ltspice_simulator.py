@@ -36,7 +36,7 @@ _logger.info(
 
 # Create a custom LTspice class that extends the base class from kupicelib
 class LTspiceCustom(Simulator):
-    """LTspice simulator implementation with cross-platform support"""
+    """LTspice simulator implementation with cross-platform support."""
 
     # Define the class attributes required by the Simulator base class
     spice_exe: List[str] = []
@@ -44,11 +44,10 @@ class LTspiceCustom(Simulator):
 
     @classmethod
     def get_default_executable(cls) -> Path:
-        """
-        Returns the default location for the LTspice executable based on the platform
+        """Returns the default location for the LTspice executable based on the
+        platform.
 
-        Returns:
-            Path: Path to the LTspice executable
+        Returns:     Path: Path to the LTspice executable
         """
         if sys.platform == "win32":
             # Windows default path
@@ -70,15 +69,12 @@ class LTspiceCustom(Simulator):
 
     @classmethod
     def create_from(cls, path_to_exe, process_name=None):
-        """
-        Creates a simulator class from a path to the simulator executable
+        """Creates a simulator class from a path to the simulator executable.
 
-        Args:
-            path_to_exe: Path to the LTspice executable or None to use default
-            process_name: Optional process name for task manager identification
+        Args:     path_to_exe: Path to the LTspice executable or None to use default
+        process_name: Optional process name for task manager identification
 
-        Returns:
-            Simulator: A new LTspice simulator instance
+        Returns:     Simulator: A new LTspice simulator instance
         """
         # Use default executable if none provided
         if path_to_exe is None:
@@ -94,7 +90,8 @@ class LTspiceCustom(Simulator):
         ):
             _logger.warning("Default LTspice executable not found at %s", path_to_exe)
             alt_paths = [
-                Path(os.path.expanduser(r"~\AppData\Local\Programs\ADI\LTspice\LTspice.exe")),
+                Path(
+                    os.path.expanduser(r"~\AppData\Local\Programs\ADI\LTspice\LTspice.exe")),
                 Path(r"C:\Program Files\ADI\LTspice\LTspice.exe"),
                 Path(r"C:\Program Files (x86)\ADI\LTspice\LTspice.exe"),
             ]
@@ -136,9 +133,21 @@ class LTspiceCustom(Simulator):
             if wine_cmd:
                 wine_prefix = os.path.expanduser("~/.wine/drive_c")
                 alt_wine_paths = [
-                    Path(wine_prefix) / "Program Files" / "ADI" / "LTspice" / "LTspice.exe",
-                    Path(wine_prefix) / "Program Files (x86)" / "ADI" / "LTspice" / "LTspice.exe",
-                    Path(wine_prefix) / "Program Files" / "LTC" / "LTspiceXVII" / "XVIIx64.exe",
+                    Path(wine_prefix) /
+                    "Program Files" /
+                    "ADI" /
+                    "LTspice" /
+                    "LTspice.exe",
+                    Path(wine_prefix) /
+                    "Program Files (x86)" /
+                    "ADI" /
+                    "LTspice" /
+                    "LTspice.exe",
+                    Path(wine_prefix) /
+                    "Program Files" /
+                    "LTC" /
+                    "LTspiceXVII" /
+                    "XVIIx64.exe",
                 ]
                 for wpath in alt_wine_paths:
                     if wpath.exists():
@@ -153,15 +162,14 @@ class LTspiceCustom(Simulator):
     def create_netlist(
         cls, asc_file: Union[str, Path], cmd_line_switches: Optional[list] = None
     ) -> Path:
-        """
-        Create a netlist from an ASC file
+        """Create a netlist from an ASC file.
 
         Args:
-            asc_file: Path to the ASC file
-            cmd_line_switches: Additional command line switches
+        asc_file: Path to the ASC file
+        cmd_line_switches: Additional command line switches
 
         Returns:
-            Path: Path to the created netlist file
+        Path: Path to the created netlist file
         """
         # Ensure the spice executable is configured
         if not cls.spice_exe:
@@ -188,15 +196,14 @@ class LTspiceCustom(Simulator):
     def run_netlist(
         self, netlist_file: Union[str, Path], cmd_line_switches: Optional[list] = None
     ) -> bool:
-        """
-        Run a simulation on a netlist file
+        """Run a simulation on a netlist file.
 
         Args:
-            netlist_file: Path to the netlist file
-            cmd_line_switches: Additional command line switches
+        netlist_file: Path to the netlist file
+        cmd_line_switches: Additional command line switches
 
         Returns:
-            bool: True if the simulation was successful
+        bool: True if the simulation was successful
         """
         if not isinstance(netlist_file, Path):
             netlist_file = Path(netlist_file)
@@ -223,19 +230,18 @@ class LTspiceCustom(Simulator):
         stderr=None,
         exe_log: bool = False,
     ) -> int:
-        """
-        Run a simulation on a netlist file (required abstract method implementation)
+        """Run a simulation on a netlist file (required abstract method implementation)
 
         Args:
-            netlist_file: Path to the netlist file
-            cmd_line_switches: Additional command line switches
-            timeout: Timeout for the simulation
-            stdout: Where to redirect stdout
-            stderr: Where to redirect stderr
-            exe_log: Whether to log the execution
+        netlist_file: Path to the netlist file
+        cmd_line_switches: Additional command line switches
+        timeout: Timeout for the simulation
+        stdout: Where to redirect stdout
+        stderr: Where to redirect stderr
+        exe_log: Whether to log the execution
 
         Returns:
-            int: Return code of the simulation
+        int: Return code of the simulation
         """
         if cmd_line_switches is None:
             cmd_line_switches = []
@@ -266,15 +272,13 @@ class LTspiceCustom(Simulator):
 
     @classmethod
     def valid_switch(cls, switch, switch_param) -> list:
-        """
-        Validate LTspice command line switches (required abstract method implementation)
+        """Validate LTspice command line switches (required abstract method
+        implementation)
 
-        Args:
-            switch: The switch to validate
-            switch_param: Parameters for the switch
+        Args:     switch: The switch to validate     switch_param: Parameters for the
+        switch
 
-        Returns:
-            list: List of validated switches
+        Returns:     list: List of validated switches
         """
         # Basic LTspice valid switches
         valid_switches = {

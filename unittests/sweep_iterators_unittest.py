@@ -1,21 +1,29 @@
 # -*- coding: utf-8 -*-
-"""
-@author:        Andreas Kaeberlein
-@copyright:     Copyright 2021
-@credits:       AKAE
+"""@author:        Andreas Kaeberlein.
 
-@license:       GPLv3
-@maintainer:    Andreas Kaeberlein
-@email:         andreas.kaeberlein@web.de
+@copyright:     Copyright 2021 @credits:       AKAE
 
-@file:          sweep_iterators_unittest.py
+@license:       GPLv3 @maintainer:    Andreas Kaeberlein @email:
+andreas.kaeberlein@web.de
+
+@
+
+file:
+sweep_iterators_unittest.py
 @date:          2021-01-09
 
 @note           'sweep_iterators.py' unit test
-                  run ./test/unit/sweep_iterators/sweep_iterators_unittest.py
+run ./test/unit/sweep_iterators/sweep_iterators_unittest.py
 """
 
 
+from kuPyLTSpice.utils.sweep_iterators import (  # Python Script under test
+    sweep,
+    sweep_iterators,
+    sweep_log,
+    sweep_log_n,
+    sweep_n,
+)
 import os  # platform independent paths
 
 # ------------------------------------------------------------------------------
@@ -28,13 +36,6 @@ import unittest  # performs test
 sys.path.append(
     os.path.abspath((os.path.dirname(os.path.abspath(__file__)) + "/../"))
 )  # add project root to lib search path
-from kuPyLTSpice.utils.sweep_iterators import (  # Python Script under test
-    sweep,
-    sweep_iterators,
-    sweep_log,
-    sweep_log_n,
-    sweep_n,
-)
 
 # ------------------------------------------------------------------------------
 
@@ -44,17 +45,13 @@ class test_sweep_iterators(unittest.TestCase):
 
     # *****************************
     def setUp(self):
-        """
-        @note   set-ups test
-        """
+        """@note   set-ups test."""
 
     # *****************************
 
     # *****************************
     def test_init(self):
-        """
-        @note   inits class
-        """
+        """@note   inits class."""
         # prepare
         dut = sweep_iterators()
         # check
@@ -65,9 +62,7 @@ class test_sweep_iterators(unittest.TestCase):
 
     # *****************************
     def test_add(self):
-        """
-        @note   add
-        """
+        """@note   add."""
         # prepare
         dut = sweep_iterators()
         # add entries
@@ -91,9 +86,7 @@ class test_sweep_iterators(unittest.TestCase):
 
     # *****************************
     def test_next(self):
-        """
-        @note   next
-        """
+        """@note   next."""
         # prepare
         dut = sweep_iterators()
         dut.add("e1", [10])
@@ -111,9 +104,7 @@ class test_sweep_iterators(unittest.TestCase):
 
     # *****************************
     def test_done(self):
-        """
-        @note   next
-        """
+        """@note   next."""
         # prepare
         dut = sweep_iterators()
         dut.add("e1", [10])
@@ -126,9 +117,7 @@ class test_sweep_iterators(unittest.TestCase):
     # ------------------------------------------------------------------------------
 
     def test_iterator_objects(self):
-        """
-        @note  iterator_objects
-        """
+        """@note  iterator_objects."""
         # *****************************
         # check
         self.assertListEqual(list(sweep(10)), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])

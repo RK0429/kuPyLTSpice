@@ -17,10 +17,10 @@
 # Created:     14-05-2022
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
-"""
-International Support functions
-Not using other known unicode detection libraries because we don't need something so complicated. LTSpice only supports
-for the time being a reduced set of encodings.
+"""International Support functions Not using other known unicode detection libraries
+because we don't need something so complicated.
+
+LTSpice only supports for the time being a reduced set of encodings.
 """
 # Import and re-export the functions from kupicelib
 from kupicelib.utils.detect_encoding import EncodingDetectError, detect_encoding
