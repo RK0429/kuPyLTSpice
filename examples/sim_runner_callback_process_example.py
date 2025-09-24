@@ -1,10 +1,10 @@
-# coding=utf-8
 
+import sys
+
+from kuPyLTSpice import SimRunner, SpiceEditor
 from kuPyLTSpice.sim.process_callback import (
     ProcessCallback,  # Importing the ProcessCallback class type
 )
-from kuPyLTSpice import SimRunner, SpiceEditor
-import sys
 
 sys.path.insert(0, "..")  # This is to allow the import from the PyLTSpice folder
 
@@ -17,15 +17,9 @@ class CallbackProc(ProcessCallback):
 
     @staticmethod
     def callback(raw_file, log_file):
-        print(
-            "Handling the simulation data of "
-            "%s"
-            ", log file "
-            "%s"
-            "" % (raw_file, log_file)
-        )
+        print(f"Handling the simulation data of {raw_file}, log file {log_file}")
         # Doing some processing here
-        return "Parsed Result of " "%s" "" % raw_file + ", log file " "%s" "" % log_file
+        return f"Parsed Result of {raw_file}, log file {log_file}"
 
 
 if __name__ == "__main__":
@@ -55,9 +49,7 @@ if __name__ == "__main__":
             netlist.set_component_value("V1", supply_voltage)
             netlist.set_component_value("V2", -supply_voltage)
             # overriding the automatic netlist naming
-            run_netlist_file = "{}_{}_{}.net".format(
-                netlist.netlist_file.stem, opamp, supply_voltage
-            )
+            run_netlist_file = f"{netlist.netlist_file.stem}_{opamp}_{supply_voltage}.net"
             runner.run(netlist, run_filename=run_netlist_file, callback=CallbackProc)
 
     for result in runner:
@@ -77,6 +69,4 @@ if __name__ == "__main__":
     results = runner.wait_completion(1, abort_all_on_timeout=True)
 
     # Sim Statistics
-    print(
-        "Successful/Total Simulations: " + str(runner.okSim) + "/" + str(runner.runno)
-    )
+    print(f"Successful/Total Simulations: {runner.okSim}/{runner.runno}")

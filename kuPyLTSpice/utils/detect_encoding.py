@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 
 # -------------------------------------------------------------------------------
 #    ____        _   _____ ____        _
@@ -12,7 +11,8 @@
 # Name:        international_support.py
 # Purpose:     Pragmatic way to detect encoding.
 #
-# Author:      Nuno Brum (nuno.brum@gmail.com) with special thanks to Fugio Yokohama (yokohama.fujio@gmail.com)
+# Author:      Nuno Brum (nuno.brum@gmail.com)
+# Notes:       Special thanks to Fugio Yokohama (yokohama.fujio@gmail.com)
 #
 # Created:     14-05-2022
 # Licence:     refer to the LICENSE file

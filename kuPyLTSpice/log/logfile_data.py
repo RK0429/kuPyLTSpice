@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 
 # -------------------------------------------------------------------------------
 # Name:        logfile_data.py
@@ -18,4 +17,4 @@ _logger = logging.getLogger("kupicelib.LTSteps")
 _logger.info("This module is deprecated. Use kupicelib.log.logfile_data instead")
 
 # Re-export the classes
-__all__ = ["LogfileData", "LTComplex"]
+__all__ = ["LTComplex", "LogfileData"]

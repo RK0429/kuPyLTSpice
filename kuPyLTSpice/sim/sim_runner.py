@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 
 # -------------------------------------------------------------------------------
 #    ____        _   _____ ____        _
@@ -96,7 +95,6 @@ __all__ = ["SimRunner"]
 import logging
 import sys
 from pathlib import Path
-from typing import List, Optional, Union
 
 from kupicelib.sim.sim_runner import SimRunner as SimRunnerBase
 from kupicelib.sim.simulator import Simulator
@@ -132,37 +130,37 @@ class SimRunner(SimRunnerBase):
     def __init__(
         self,
         *,
-        simulator=None,
+        simulator: str | Path | type[Simulator] | None = None,
         parallel_sims: int = 4,
         timeout: float = 600.0,
-        verbose=False,
-        output_folder: Optional[str] = None,
+        verbose: bool = False,
+        output_folder: str | None = None,
     ):
-        # The '*' in the parameter list forces the user to use named parameters for the rest of the parameters.
-        # This is a good practice to avoid confusion.
+        # For clarity require named parameters after the leading arguments.
 
         # Gets a simulator.
         # Import our custom LTspice implementation which has Mac support
         from kuPyLTSpice.sim.ltspice_simulator import LTspice as CustomLTspice
 
+        simulator_cls: type[Simulator]
         if simulator is None:
-            simulator = CustomLTspice
-        elif isinstance(simulator, (str, Path)):
-            simulator = CustomLTspice.create_from(simulator)
-        elif issubclass(simulator, Simulator):
-            simulator = simulator
+            simulator_cls = CustomLTspice
+        elif isinstance(simulator, str | Path):
+            simulator_cls = CustomLTspice.create_from(simulator)
         else:
-            simulator = CustomLTspice
+            assert isinstance(simulator, type)
+            simulator_cls = simulator
 
         # Log the platform and detected simulator
         if verbose:
             _logger.info("Platform detected: %s", sys.platform)
             _logger.info(
-                "Using simulator: %s", getattr(simulator, "executable", simulator)
+                "Using simulator: %s",
+                getattr(simulator_cls, "executable", simulator_cls),
             )
 
         super().__init__(
-            simulator=simulator,
+            simulator=simulator_cls,
             parallel_sims=parallel_sims,
             timeout=timeout,
             verbose=verbose,
@@ -170,8 +168,8 @@ class SimRunner(SimRunnerBase):
         )
 
     def create_netlist(
-        self, asc_file: Union[str, Path], cmd_line_args: Optional[List[str]] = None
-    ):
+        self, asc_file: str | Path, cmd_line_args: list[str] | None = None
+    ) -> Path | None:
         """Creates a .net from an .asc using the LTSpice -netlist command line."""
         if not isinstance(asc_file, Path):
             asc_file = Path(asc_file)
@@ -186,7 +184,7 @@ class SimRunner(SimRunnerBase):
                     getattr(self.simulator, "executable", "unknown"),
                 )
 
-            return self.simulator.create_netlist(  # type: ignore[attr-defined]
+            return self.simulator.create_netlist(
                 asc_file, cmd_line_switches=cmd_line_args
             )
         else:

@@ -1,6 +1,6 @@
 from kuPyLTSpice import AscEditor, SimRunner
 
-# Force another simulator - uncomment the appropriate line for your OS or let PyLTSpice auto-detect it
+# Force another simulator - uncomment for your OS or rely on auto-detection.
 # Windows path
 # simulator = r"C:\Program Files\LTC\LTspiceXVII\XVIIx64.exe"
 # Mac OS path
@@ -28,14 +28,14 @@ for opamp in ("AD712", "AD820"):
         LTC.run(netlist)
 
 for raw, log in LTC:
-    print("Raw file: %s, Log file: %s" % (raw, log))
+    print(f"Raw file: {raw}, Log file: {log}")
     # do something with the data
     # raw_data = RawRead(raw)
     # log_data = LTSteps(log)
     # ...
 
 # Sim Statistics
-print("Successful/Total Simulations: " + str(LTC.okSim) + "/" + str(LTC.runno))
+print(f"Successful/Total Simulations: {LTC.okSim}/{LTC.runno}")
 
 enter = input("Press enter to delete created files")
 if enter == "":

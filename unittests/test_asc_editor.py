@@ -1,10 +1,11 @@
-import kuPyLTSpice
 import os
 import sys
 import unittest
 
+import kuPyLTSpice
+
 sys.path.append(
-    os.path.abspath((os.path.dirname(os.path.abspath(__file__)) + "/../"))
+    os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../")
 )  # add project root to lib search path
 
 
@@ -87,12 +88,12 @@ class ASC_Editor_Test(unittest.TestCase):
         )
 
     def equalFiles(self, file1, file2):
-        with open(file1, "r") as f1:
+        with open(file1) as f1:
             lines1 = f1.readlines()
-        with open(file2, "r") as f2:
+        with open(file2) as f2:
             lines2 = f2.readlines()
-        for i, lines in enumerate(zip(lines1, lines2)):
-            self.assertEqual(lines[0], lines[1], "Line %d" % i)
+        for i, lines in enumerate(zip(lines1, lines2, strict=False)):
+            self.assertEqual(lines[0], lines[1], f"Line {i}")
 
 
 if __name__ == "__main__":

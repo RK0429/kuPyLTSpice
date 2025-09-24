@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 
 import logging
 import os
@@ -23,8 +22,10 @@ import subprocess
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
 import sys
+from collections.abc import Sequence
+from os import PathLike
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any, ClassVar
 
 from kupicelib.sim.simulator import Simulator, run_function
 
@@ -39,8 +40,8 @@ class LTspiceCustom(Simulator):
     """LTspice simulator implementation with cross-platform support."""
 
     # Define the class attributes required by the Simulator base class
-    spice_exe: List[str] = []
-    process_name: str = "XVIIx64.exe"  # Default process name for Windows
+    spice_exe: ClassVar[list[str]] = []
+    process_name: ClassVar[str] = "XVIIx64.exe"  # Default process name for Windows
 
     @classmethod
     def get_default_executable(cls) -> Path:
@@ -68,7 +69,11 @@ class LTspiceCustom(Simulator):
             )  # Just use 'wine' command and rely on user to set up correctly
 
     @classmethod
-    def create_from(cls, path_to_exe, process_name=None):
+    def create_from(
+        cls,
+        path_to_exe: str | Path | PathLike[str] | None,
+        process_name: str | None = None,
+    ) -> type["LTspiceCustom"]:
         """Creates a simulator class from a path to the simulator executable.
 
         Args:     path_to_exe: Path to the LTspice executable or None to use default
@@ -160,7 +165,9 @@ class LTspiceCustom(Simulator):
 
     @classmethod
     def create_netlist(
-        cls, asc_file: Union[str, Path], cmd_line_switches: Optional[list] = None
+        cls,
+        asc_file: str | Path | PathLike[str],
+        cmd_line_switches: Sequence[str] | None = None,
     ) -> Path:
         """Create a netlist from an ASC file.
 
@@ -182,19 +189,21 @@ class LTspiceCustom(Simulator):
             raise FileNotFoundError(f"ASC file not found: {asc_file}")
 
         # Build command line arguments
-        args = ["-netlist"]
+        args: list[str] = ["-netlist"]
         if cmd_line_switches:
             args.extend(cmd_line_switches)
         args.append(str(asc_file))
 
         # Invoke LTspice to create the netlist on all platforms
-        run_function([cls.spice_exe[0]] + args)
+        run_function([cls.spice_exe[0], *args])
 
         # Return the path to the created netlist file
         return asc_file.with_suffix(".net")
 
     def run_netlist(
-        self, netlist_file: Union[str, Path], cmd_line_switches: Optional[list] = None
+        self,
+        netlist_file: str | Path | PathLike[str],
+        cmd_line_switches: Sequence[str] | None = None,
     ) -> bool:
         """Run a simulation on a netlist file.
 
@@ -212,22 +221,22 @@ class LTspiceCustom(Simulator):
             raise FileNotFoundError(f"Netlist file not found: {netlist_file}")
 
         # Build command line arguments
-        args = ["-b"]  # Batch mode
+        args: list[str] = ["-b"]  # Batch mode
         if cmd_line_switches:
             args.extend(cmd_line_switches)
         args.append(str(netlist_file))
 
         # Run LTspice to run the simulation
-        return run_function([self.spice_exe[0]] + args) == 0
+        return run_function([self.spice_exe[0], *args]) == 0
 
     @classmethod
     def run(
         cls,
-        netlist_file: Union[str, Path],
-        cmd_line_switches: Optional[List[Any]] = None,
-        timeout: Optional[float] = None,
-        stdout=None,
-        stderr=None,
+        netlist_file: str | Path | PathLike[str],
+        cmd_line_switches: Sequence[str] | None = None,
+        timeout: float | None = None,
+        stdout: Any | None = None,
+        stderr: Any | None = None,
         exe_log: bool = False,
     ) -> int:
         """Run a simulation on a netlist file (required abstract method implementation)
@@ -244,16 +253,16 @@ class LTspiceCustom(Simulator):
         int: Return code of the simulation
         """
         if cmd_line_switches is None:
-            cmd_line_switches = []
+            cmd_line_switches_list: list[str] = []
+        else:
+            cmd_line_switches_list = list(cmd_line_switches)
 
         netlist_path = (
             Path(netlist_file) if not isinstance(netlist_file, Path) else netlist_file
         )
 
         # Build command line arguments
-        args = cls.spice_exe + ["-b"]  # Batch mode
-        args.extend(cmd_line_switches)
-        args.append(str(netlist_path))
+        args = [*cls.spice_exe, "-b", *cmd_line_switches_list, str(netlist_path)]
 
         if exe_log:
             _logger.info(f"Running LTspice simulation on {netlist_path}")
@@ -271,7 +280,11 @@ class LTspiceCustom(Simulator):
         return result.returncode
 
     @classmethod
-    def valid_switch(cls, switch, switch_param) -> list:
+    def valid_switch(
+        cls,
+        switch: str,
+        switch_param: Any,
+    ) -> list[str]:
         """Validate LTspice command line switches (required abstract method
         implementation)
 
@@ -281,7 +294,7 @@ class LTspiceCustom(Simulator):
         Returns:     list: List of validated switches
         """
         # Basic LTspice valid switches
-        valid_switches = {
+        valid_switches: dict[str, str | None] = {
             "-b": None,  # Run in batch mode
             "-netlist": None,  # Generate netlist
             "-run": None,  # Run the simulation

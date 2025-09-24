@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 # -------------------------------------------------------------------------------
 #    ____        _   _____ ____        _
 #   |  _ \ _   _| | |_   _/ ___| _ __ (_) ___ ___
@@ -17,10 +16,13 @@
 # -------------------------------------------------------------------------------
 import logging
 import sys
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Optional, Type, Union
+from typing import Any
 
 from kupicelib.editor.spice_editor import SpiceEditor as SpiceEditorBase
+from kupicelib.sim.run_task import RunTask
+from kupicelib.sim.simulator import Simulator, run_function
 
 # Use our custom LTspice implementation with Mac support
 from kuPyLTSpice.sim.ltspice_simulator import LTspice
@@ -34,36 +36,52 @@ _logger.info(
 class SpiceEditor(SpiceEditorBase):
 
     def __init__(
-        self, netlist_file: Union[str, Path], encoding="autodetect", create_blank=False
-    ):
+        self,
+        netlist_file: str | Path,
+        encoding: str = 'autodetect',
+        create_blank: bool = False,
+    ) -> None:
         netlist_file = Path(netlist_file)
         if netlist_file.suffix == ".asc":
             # Log platform-specific information when creating a netlist
             if _logger.isEnabledFor(logging.INFO) and sys.platform == "darwin":
                 _logger.info("Creating netlist on MacOS using LTSpice")
 
-            # Create a LTspice instance to use its create_netlist method
-            ltspice_instance = LTspice.create_from(None)
-            ltspice_instance.create_netlist(netlist_file)
+            ltspice_cls = LTspice.create_from(None)  # pyright: ignore[reportCallIssue]
+            command: list[str]
+            if ltspice_cls.spice_exe:
+                command = [*ltspice_cls.spice_exe, "-netlist", netlist_file.as_posix()]
+            else:
+                command = ["ltspice", "-netlist", netlist_file.as_posix()]
+            run_function(command)
             netlist_file = netlist_file.with_suffix(".net")
         super().__init__(netlist_file, encoding, create_blank)
 
     def run(
         self,
         wait_resource: bool = True,
-        callback: Optional[Union[Type[Any], Callable[[Path, Path], Any]]] = None,
-        timeout: Optional[float] = 600,
-        run_filename: Optional[str] = None,
-        simulator=None,
-    ):
+        callback: type[Any] | Callable[[Path, Path], Any] | None = None,
+        timeout: float | None = 600,
+        run_filename: str | None = None,
+        simulator: type[Simulator] | None = None,
+    ) -> RunTask | None:
+        simulator_cls: type[Simulator]
         if simulator is None:
-            simulator = LTspice
+            simulator_cls = LTspice
 
             # Log platform-specific information when running a simulation
             if _logger.isEnabledFor(logging.INFO) and sys.platform == "darwin":
                 _logger.info(
                     "Running simulation on MacOS using LTSpice at: %s",
-                    getattr(simulator, "executable", "unknown"),
+                    getattr(simulator_cls, "executable", "unknown"),
                 )
+        else:
+            simulator_cls = simulator
 
-        return super().run(wait_resource, callback, timeout, run_filename, simulator)
+        return super().run(
+            wait_resource,
+            callback,
+            timeout,
+            run_filename,
+            simulator_cls,
+        )

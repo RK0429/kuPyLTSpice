@@ -1,147 +1,138 @@
-def test_readme_snippet():
-    # -- Start of RawWrite Example --
-    import numpy as np
+from __future__ import annotations
 
-    from kuPyLTSpice import RawRead, RawWrite, Trace
+from collections.abc import Sequence
+from pathlib import Path
 
-    LW = RawWrite(fastacces=False)
-    tx = Trace("time", np.arange(0.0, 3e-3, 997e-11))
-    vy = Trace("N001", np.sin(2 * np.pi * tx.data * 10000))
-    vz = Trace("N002", np.cos(2 * np.pi * tx.data * 9970))
-    LW.add_trace(tx)
-    LW.add_trace(vy)
-    LW.add_trace(vz)
-    LW.save("./testfiles/teste_snippet1.raw")
-    # -- End of RawWrite Example --
+import numpy as np
+
+from kuPyLTSpice import RawRead, RawWrite, Trace
+
+TESTFILES = Path(__file__).parent / "testfiles"
 
 
-def test_trc2raw():  # Convert Teledyne-Lecroy trace files to raw files
-    # -- Start of Lecroy Raw File into LTspice raw file Example --
-    import numpy as np
+def _add_basic_traces(writer: RawWrite) -> tuple[Trace, Trace, Trace]:
+    time_values = np.arange(0.0, 3e-3, 997e-11, dtype=float)
+    time_trace = Trace("time", time_values.tolist())
+    sine_trace = Trace("N001", np.sin(2 * np.pi * time_values * 10000).tolist())
+    cosine_trace = Trace("N002", np.cos(2 * np.pi * time_values * 9970).tolist())
+    writer.add_trace(time_trace)
+    writer.add_trace(sine_trace)
+    writer.add_trace(cosine_trace)
+    return time_trace, sine_trace, cosine_trace
 
-    from kuPyLTSpice import RawRead, RawWrite, Trace
 
-    f = open(r"./testfiles/Current_Lock_Front_Right_8V.trc")
-    raw_type = (
-        ""  # Initialization of parameters that need to be overridden by the file header
-    )
+def test_readme_snippet() -> None:
+    """Mimic the example from the README that creates a simple raw file."""
+    writer = RawWrite(fastacces=False)
+    _add_basic_traces(writer)
+    writer.save(TESTFILES / "teste_snippet1.raw")
+
+
+def _read_trace_metadata(trace_path: Path) -> tuple[str, int]:
+    raw_type = ""
     wave_size = 0
-    for line in f:
-        tokens = line.rstrip("\r\n").split(",")
-        if len(tokens) == 4:
-            if tokens[0] == "Segments" and tokens[2] == "SegmentSize":
+    with trace_path.open(encoding="utf-8") as handle:
+        for line in handle:
+            tokens = line.rstrip("\r\n").split(",")
+            if len(tokens) == 4 and tokens[0] == "Segments" and tokens[2] == "SegmentSize":
                 wave_size = int(tokens[1]) * int(tokens[3])
-        if len(tokens) == 2:
-            if tokens[0] == "Time" and tokens[1] == "Ampl":
+            if len(tokens) == 2 and tokens[0] == "Time" and tokens[1] == "Ampl":
                 raw_type = "transient"
                 break
-    if raw_type == "transient" and wave_size > 0:
-        data = np.genfromtxt(f, dtype="float,float", delimiter=",", max_rows=wave_size)
-        LW = RawWrite()
-        LW.add_trace(Trace("time", [x[0] for x in data]))
-        LW.add_trace(Trace("Ampl", [x[1] for x in data]))
-        LW.save("teste_trc.raw")
-    f.close()
-    # -- End of Lecroy Raw File into LTspice raw file Example --
+    return raw_type, wave_size
+
+def _iter_trace_data(trace_path: Path, rows: int) -> Sequence[tuple[float, float]]:
+    with trace_path.open(encoding="utf-8") as handle:
+        for line in handle:
+            if line.startswith("Time,Ampl"):
+                break
+        data = np.genfromtxt(handle, dtype="float,float", delimiter=",", max_rows=rows)
+    return [tuple(map(float, row)) for row in data.tolist()]
 
 
-def test_axis_sync():  # Test axis sync
-    # -- Start of Combining two different time axis --
-    import numpy as np
+def test_trc2raw() -> None:
+    """Convert a Teledyne-Lecroy trace file to an LTSpice raw file."""
+    trace_file = TESTFILES / "Current_Lock_Front_Right_8V.trc"
+    raw_type, wave_size = _read_trace_metadata(trace_file)
+    if raw_type != "transient" or wave_size <= 0:
+        return
 
-    from kuPyLTSpice import RawRead, RawWrite, Trace
-
-    LW = RawWrite()
-    tx = Trace("time", np.arange(0.0, 3e-3, 997e-11))
-    vy = Trace("N001", np.sin(2 * np.pi * tx.data * 10000))
-    vz = Trace("N002", np.cos(2 * np.pi * tx.data * 9970))
-    LW.add_trace(tx)
-    LW.add_trace(vy)
-    LW.add_trace(vz)
-    LW.save("./testfiles/teste_w.raw")
-    LR = RawRead("./testfiles/testfile.raw")
-    LW.add_traces_from_raw(LR, ("V(out)",), force_axis_alignment=True)
-    LW.save("./testfiles/merge.raw")
-    test = """
-    equal = True
-    for ii in range(len(tx)):
-        if t[ii] != tx[ii]:
-            print(t[ii], tx[ii])
-            equal = False
-    print(equal)
-
-    v = LR.get_trace('N001')
-    max_error = 1.5e-12
-    for ii in range(len(vy)):
-        err = abs(v[ii] - vy[ii])
-        if err > max_error:
-            max_error = err
-            print(v[ii], vy[ii], v[ii] - vy[ii])
-    print(max_error)
-    """
-    # -- End of Combining two different Raw Files --
+    data = list(_iter_trace_data(trace_file, wave_size))
+    writer = RawWrite()
+    writer.add_trace(Trace("time", [row[0] for row in data]))
+    writer.add_trace(Trace("Ampl", [row[1] for row in data]))
+    writer.save(TESTFILES / "teste_trc.raw")
 
 
-def test_write_ac():
-    # -- Start of Writing .AC raw files Example --
-    from kuPyLTSpice import RawRead, RawWrite, Trace
+def test_axis_sync() -> None:
+    """Demonstrate adding aligned traces from an existing raw file."""
+    writer = RawWrite()
+    _, vy, _ = _add_basic_traces(writer)
+    writer.save(TESTFILES / "teste_w.raw")
 
-    LW = RawWrite()
-    LR = RawRead("./testfiles/PI_Filter.raw")
-    LR1 = RawRead("./testfiles/PI_Filter_resampled.raw")
-    LW.add_traces_from_raw(LR, ("V(N002)",))
-    LW.add_traces_from_raw(
-        LR1, "V(N002)", rename_format="N002_resampled", force_axis_alignment=True
+    reader = RawRead(TESTFILES / "testfile.raw")
+    writer.add_traces_from_raw(reader, ("V(out)",), force_axis_alignment=True)
+    writer.save(TESTFILES / "merge.raw")
+
+    max_error = max(abs(reader.get_trace("N001")[idx] - vy[idx]) for idx in range(len(vy)))
+    print("Maximum interpolation error", max_error)
+
+
+def test_write_ac() -> None:
+    """Show how to rewrite .AC raw files."""
+    writer = RawWrite()
+    reference = RawRead(TESTFILES / "PI_Filter.raw")
+    resampled = RawRead(TESTFILES / "PI_Filter_resampled.raw")
+    writer.add_traces_from_raw(reference, ("V(N002)",))
+    writer.add_traces_from_raw(
+        resampled,
+        "V(N002)",
+        rename_format="N002_resampled",
+        force_axis_alignment=True,
     )
-    LW.flag_fastaccess = False
-    LW.save("./testfiles/PI_filter_rewritten.raw")
-    LW.flag_fastaccess = True
-    LW.save("./testfiles/PI_filter_rewritten_fast.raw")
-    # -- End of Writing .AC raw files Example --
+    writer.flag_fastaccess = False
+    writer.save(TESTFILES / "PI_filter_rewritten.raw")
+    writer.flag_fastaccess = True
+    writer.save(TESTFILES / "PI_filter_rewritten_fast.raw")
 
 
-def test_write_tran():
-    # -- Start of creating a subset of a raw file --
-    from kuPyLTSpice import RawRead, RawWrite, Trace
-
-    LR = RawRead("./testfiles/TRAN - STEP.raw")
-    LW = RawWrite()
-    LW.add_traces_from_raw(LR, ("V(out)", "I(C1)"))
-    LW.flag_fastaccess = False
-    LW.save("./testfiles/TRAN - STEP0_normal.raw")
-    LW.flag_fastaccess = True
-    LW.save("./testfiles/TRAN - STEP0_fast.raw")
-    # -- End of creating a subset of a raw file --
+def test_write_tran() -> None:
+    """Create a subset of a transient raw file."""
+    reader = RawRead(TESTFILES / "TRAN - STEP.raw")
+    writer = RawWrite()
+    writer.add_traces_from_raw(reader, ("V(out)", "I(C1)"))
+    writer.flag_fastaccess = False
+    writer.save(TESTFILES / "TRAN - STEP0_normal.raw")
+    writer.flag_fastaccess = True
+    writer.save(TESTFILES / "TRAN - STEP0_fast.raw")
 
 
-def test_combine_tran():
-    # -- Start of Combining two different Raw Files --
-    from kuPyLTSpice import RawRead, RawWrite
-
-    LW = RawWrite()
-    for tag, raw in (
-        ("AD820_15", "./testfiles/Batch_Test_AD820_15.raw"),
-        # ("AD820_10", "./testfiles/Batch_Test_AD820_10.raw"),
-        ("AD712_15", "./testfiles/Batch_Test_AD712_15.raw"),
-        # ("AD712_10", "./testfiles/Batch_Test_AD712_10.raw"),
-        # ("AD820_5", "./testfiles/Batch_Test_AD820_5.raw"),
-        # ("AD712_5", "./testfiles/Batch_Test_AD712_5.raw"),
+def test_combine_tran() -> None:
+    """Combine traces from multiple raw files into a single dataset."""
+    writer = RawWrite()
+    for tag, raw_path in (
+        ("AD820_15", TESTFILES / "Batch_Test_AD820_15.raw"),
+        ("AD712_15", TESTFILES / "Batch_Test_AD712_15.raw"),
     ):
-        LR = RawRead(raw)
-        LW.add_traces_from_raw(
-            LR,
+        reader = RawRead(raw_path)
+        writer.add_traces_from_raw(
+            reader,
             ("V(out)", "I(R1)"),
             rename_format="{}_{tag}",
             tag=tag,
             force_axis_alignment=True,
         )
-    LW.flag_fastaccess = False
-    LW.save("./testfiles/Batch_Test_Combine.raw")
-    # -- End of Combining two different Raw Files --
+    writer.flag_fastaccess = False
+    writer.save(TESTFILES / "Batch_Test_Combine.raw")
 
 
-test_readme_snippet()
-test_axis_sync()
-test_write_ac()
-test_write_tran()
-test_combine_tran()
+def _run_examples() -> None:
+    test_readme_snippet()
+    test_axis_sync()
+    test_write_ac()
+    test_write_tran()
+    test_combine_tran()
+
+
+if __name__ == "__main__":
+    _run_examples()

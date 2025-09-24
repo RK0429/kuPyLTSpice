@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # -------------------------------------------------------------------------------
 #    ____        _   _____ ____        _
 #   |  _ \ _   _| | |_   _/ ___| _ __ (_) ___ ___
@@ -19,37 +18,42 @@
 
 # ======================== Andreas Kaeberlein Iterator =========================
 
+from collections.abc import Sequence
+from typing import Any, TypedDict
+
+
+class IteratorEntry(TypedDict):
+    name: str
+    values: list[Any]
+
 
 class sweep_iterators:
 
     # *****************************
     def __init__(self):
         """Initialization."""
-        self.numTotalIterations = 0  # total of iteartion if all loops are executed
-        self.numCurrentIteration = 0  # current iteration
-        self.iteratorEntrys = []  # list of dicts for iterator entrys
-        self.idxForNextIter = []  # currently used entry value for loop
+        self.numTotalIterations: int = 0  # total of iteration if all loops are executed
+        self.numCurrentIteration: int = 0  # current iteration
+        self.iteratorEntrys: list[IteratorEntry] = []  # list of dicts for iterator entries
+        self.idxForNextIter: list[int] = []  # currently used entry value for loop
 
     # *****************************
 
     # *****************************
-    def add(self, name="", vals=[]):
-        """@note               adds entry to list of iterators.
-
-        @param name         component name in ltspice schematic @param vals
-        component values @rtype              boolean @return             successful
-        """
+    def add(self, name: str = "", vals: Sequence[Any] | None = None) -> bool:
+        """Add an entry to the iterator list."""
+        values = list(vals) if vals is not None else []
         # check for valid arguments
-        if 0 == len(name) or 0 == len(vals):
+        if not name or not values:
             raise ValueError("Empty arguments provided")
         # add to iterator list
-        self.iteratorEntrys.append({"name": name, "values": vals})  # add entry
+        entry: IteratorEntry = {"name": name, "values": values}
+        self.iteratorEntrys.append(entry)
         self.idxForNextIter.append(0)  # start on first element
         # update total number of iteration
         self.numTotalIterations = 1
-        # prepare for mutiplication
-        for i in self.iteratorEntrys:
-            self.numTotalIterations = self.numTotalIterations * len(i["values"])
+        for entry in self.iteratorEntrys:
+            self.numTotalIterations *= len(entry["values"])
         # reset current iterator to ensure restart
         self.numCurrentIteration = 0
         # succesfull end
@@ -58,51 +62,30 @@ class sweep_iterators:
     # *****************************
 
     # *****************************
-    def done(self):
-        """@note               check if iteration is done.
-
-        @rtype              boolean @retval     True    Iteration done @retval     False
-        Iteration needs to continue @return             successful
-        """
-        # check for proper init
-        if 0 == len(self.iteratorEntrys):
+    def done(self) -> bool:
+        """Return True when all iterator combinations were consumed."""
+        if not self.iteratorEntrys:
             return True
-        # iteration done?
-        if self.numCurrentIteration < self.numTotalIterations:
-            return False
-        return True
+        return self.numCurrentIteration >= self.numTotalIterations
 
     # *****************************
 
     # *****************************
-    def next(self):
-        """@note               creates next parameter set for sweep.
-
-        @rtype              dict @return             parameter set
-        """
-        # check for iterators
-        if 0 == len(self.iteratorEntrys):
-            raise ValueError("No iterator entrys defined. Use 'add' procedure")
-        # assemble dict with new iterator values
-        nextIter = {}
-        for i in range(len(self.iteratorEntrys)):
-            nextIter[self.iteratorEntrys[i]["name"]] = self.iteratorEntrys[i]["values"][
-                self.idxForNextIter[i]
-            ]
-        # prepare for next cycle
+    def next(self) -> dict[str, Any]:
+        """Return the next parameter set for the sweep."""
+        if not self.iteratorEntrys:
+            raise ValueError("No iterator entries defined. Use the 'add' method first.")
+        next_iter: dict[str, Any] = {}
+        for index, entry in enumerate(self.iteratorEntrys):
+            next_iter[entry["name"]] = entry["values"][self.idxForNextIter[index]]
         for i in range(len(self.idxForNextIter) - 1, -1, -1):
-            # increment inner loop
             if i == len(self.idxForNextIter) - 1:
-                self.idxForNextIter[i] = self.idxForNextIter[i] + 1
-            # inner loop overflow, inc outer loop
+                self.idxForNextIter[i] += 1
             if self.idxForNextIter[i] >= len(self.iteratorEntrys[i]["values"]):
-                self.idxForNextIter[i] = 0  # restart inner loop at first element
-                self.idxForNextIter[max(i - 1, 0)] = (
-                    self.idxForNextIter[i - 1] + 1
-                )  # go to next element in outer loop
-        # increment iterator
-        self.numCurrentIteration = self.numCurrentIteration + 1
-        # next iteration element
-        return nextIter
+                self.idxForNextIter[i] = 0
+                if i > 0:
+                    self.idxForNextIter[i - 1] += 1
+        self.numCurrentIteration += 1
+        return next_iter
 
     # *****************************

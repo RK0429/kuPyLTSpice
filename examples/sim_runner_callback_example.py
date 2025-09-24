@@ -1,7 +1,6 @@
-# coding=utf-8
-from time import sleep
-from random import random
 import logging
+from random import random
+from time import sleep
 
 try:
     from rich.logging import RichHandler
@@ -16,13 +15,7 @@ if RichHandler:
 
 
 def processing_data(raw_file, log_file):
-    print(
-        "Handling the simulation data of "
-        "%s"
-        ", log file "
-        "%s"
-        "" % (raw_file, log_file)
-    )
+    print(f"Handling the simulation data of {raw_file}, log file {log_file}")
     time_to_sleep = random() * 5
     print(f"Sleeping for {time_to_sleep} seconds")
     sleep(time_to_sleep)
@@ -55,9 +48,7 @@ for opamp in ("AD712", "AD820"):
         netlist.set_component_value("V1", supply_voltage)
         netlist.set_component_value("V2", -supply_voltage)
         # overriding the automatic netlist naming
-        run_netlist_file = "{}_{}_{}.net".format(
-            netlist.circuit_file.stem, opamp, supply_voltage
-        )
+        run_netlist_file = f"{netlist.circuit_file.stem}_{opamp}_{supply_voltage}.net"
         if use_run_now:
             runner.run_now(netlist, run_filename=run_netlist_file)
         else:
@@ -81,6 +72,4 @@ if use_run_now is False:
     results = runner.wait_completion(1, abort_all_on_timeout=True)
 
     # Sim Statistics
-    print(
-        "Successful/Total Simulations: " + str(runner.okSim) + "/" + str(runner.runno)
-    )
+    print(f"Successful/Total Simulations: {runner.okSim}/{runner.runno}")

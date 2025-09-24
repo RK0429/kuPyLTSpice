@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 
 # -------------------------------------------------------------------------------
 #    ____        _   _____ ____        _
@@ -95,14 +94,26 @@ __author__ = "Nuno Canto Brum <nuno.brum@gmail.com>"
 __copyright__ = "Copyright 2020, Fribourg Switzerland"
 
 import logging
-import os
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Optional, Type, Union
+from typing import Any, cast
 
 from kupicelib.editor.spice_editor import SpiceEditor
 from kupicelib.sim.process_callback import ProcessCallback
+from kupicelib.sim.run_task import RunTask
 from kupicelib.sim.sim_runner import SimRunner
 from kupicelib.sim.simulator import Simulator
+
+
+def _normalize_simulator_input(
+    simulator: str | Path | type[Simulator] | None,
+    default: type[Simulator],
+) -> type[Simulator]:
+    if simulator is None:
+        return default
+    if isinstance(simulator, str | Path):
+        return default.create_from(simulator)
+    return simulator
 
 _logger = logging.getLogger("kupicelib.SimBatch")
 
@@ -120,25 +131,17 @@ class SimCommander(SpiceEditor):
 
     def __init__(
         self,
-        netlist_file: Union[str, Path],
+        netlist_file: str | Path,
         parallel_sims: int = 4,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
         verbose: bool = False,
         encoding: str = "autodetect",
-        simulator: Optional[Union[str, Type[Simulator]]] = None,
+        simulator: str | Path | type[Simulator] | None = None,
     ):
         from ..sim.ltspice_simulator import LTspice  # In case no simulator is given
 
         # Convert simulator to the right type
-        actual_simulator: Type[Simulator]
-        if simulator is None:
-            actual_simulator = LTspice
-        elif isinstance(simulator, str):
-            actual_simulator = LTspice.create_from(simulator)
-        elif isinstance(simulator, type) and issubclass(simulator, Simulator):
-            actual_simulator = simulator
-        else:
-            actual_simulator = LTspice
+        actual_simulator = _normalize_simulator_input(simulator, LTspice)
 
         netlist_file_path = Path(netlist_file)
         self.netlist_file = netlist_file_path  # Legacy property
@@ -146,18 +149,13 @@ class SimCommander(SpiceEditor):
         # Handle .asc files by creating a netlist
         if netlist_file_path.suffix == ".asc":
             # Create an instance of the simulator to create the netlist
-            simulator_instance = actual_simulator.create_from(None)
-            netlist_file_path = simulator_instance.create_netlist(
-                netlist_file_path)
+            simulator_instance: type[Simulator] = actual_simulator.create_from(None)
+            netlist_file_path = simulator_instance.create_netlist(netlist_file_path)
 
         super().__init__(netlist_file_path, encoding)
 
         # Ensure output_folder is a string
-        output_folder = (
-            netlist_file_path.parent.as_posix()
-            if isinstance(netlist_file_path, Path)
-            else os.path.dirname(str(netlist_file))
-        )
+        output_folder = netlist_file_path.parent.as_posix()
 
         # Ensure timeout is a float
         timeout_float = float(timeout) if timeout is not None else 600.0
@@ -171,7 +169,8 @@ class SimCommander(SpiceEditor):
         )
 
     def setLTspiceRunCommand(
-            self, spice_tool: Union[str, Type[Simulator]]) -> None:
+        self, spice_tool: str | Path | type[Simulator]
+    ) -> None:
         """*(Deprecated)* Manually setting the LTSpice run command.
 
         :param spice_tool: String containing the path to the spice tool to be used, or
@@ -183,12 +182,9 @@ class SimCommander(SpiceEditor):
         from ..sim.ltspice_simulator import LTspice
 
         # Convert spice_tool to the right type
-        actual_simulator: Type[Simulator]
-        if isinstance(spice_tool, str):
-            actual_simulator = LTspice.create_from(spice_tool)
-        elif isinstance(spice_tool, type) and issubclass(spice_tool, Simulator):
-            actual_simulator = spice_tool
-        else:
+        try:
+            actual_simulator = _normalize_simulator_input(spice_tool, LTspice)
+        except TypeError:
             _logger.warning("Invalid simulator type. Using default LTspice.")
             actual_simulator = LTspice
 
@@ -197,7 +193,8 @@ class SimCommander(SpiceEditor):
         # For backward compatibility, we'll issue a warning and attempt to create
         # a new runner with the specified simulator
         _logger.warning(
-            "setLTspiceRunCommand is deprecated. Use SimRunner directly with the simulator parameter."
+            "setLTspiceRunCommand is deprecated. "
+            "Use SimRunner directly with the simulator parameter."
         )
 
         output_folder = getattr(self.runner, "output_folder", None)
@@ -213,7 +210,7 @@ class SimCommander(SpiceEditor):
             output_folder=output_folder,
         )
 
-    def add_LTspiceRunCmdLineSwitches(self, *args) -> None:
+    def add_LTspiceRunCmdLineSwitches(self, *args: str) -> None:
         """*(Deprecated)* Used to add an extra command line argument such as -I<path> to
         add symbol search path or -FastAccess to convert the raw file into Fast Access.
         The arguments is a list of strings as is defined in the LTSpice command line
@@ -232,12 +229,14 @@ class SimCommander(SpiceEditor):
     def run(
         self,
         wait_resource: bool = True,
-        callback: Optional[Union[Type[Any],
-                                 Callable[[Path, Path], Any]]] = None,
-        timeout: Optional[float] = 600,
-        run_filename: Optional[str] = None,
-        simulator=None,
-    ):
+        callback: type[ProcessCallback]
+        | Callable[[Path, Path], Any]
+        | Callable[[str, str], Any]
+        | None = None,
+        timeout: float | None = 600,
+        run_filename: str | None = None,
+        simulator: type[Simulator] | None = None,
+    ) -> RunTask | None:
         """Run the simulation with the updated netlist.
 
         This overrides the parent class method to maintain backward compatibility.
@@ -250,24 +249,20 @@ class SimCommander(SpiceEditor):
         :return: A RunTask object
         """
         # Adapt callback if necessary
-        adapted_callback: Optional[Union[Type[Any],
-                                         Callable[[Path, Path], Any]]] = None
+        adapted_callback: type[ProcessCallback] | Callable[[Path, Path], Any] | None = None
 
         if callback is not None:
-            if isinstance(callback, type) and issubclass(
-                    callback, ProcessCallback):
-                adapted_callback = callback
-            elif callable(callback):
+            if isinstance(callback, type):
+                if issubclass(callback, ProcessCallback):
+                    adapted_callback = callback
+            else:
                 # Create a wrapper function that adapts the callback to the expected
                 # signature
                 # For backward compatibility, convert Path objects to strings
-                def adapted_callback_wrapper(
-                        raw_file: Path, log_file: Path) -> Any:
-                    # Type: ignore is used to silence the linter errors while
-                    # maintaining backward compatibility with callbacks that expect
-                    # string arguments instead of Path objects
-                    return callback(str(raw_file), str(
-                        log_file))  # type: ignore
+                callback_fn = cast(Callable[[str, str], Any], callback)
+
+                def adapted_callback_wrapper(raw_file: Path, log_file: Path) -> Any:
+                    return callback_fn(str(raw_file), str(log_file))
 
                 adapted_callback = adapted_callback_wrapper
 
@@ -299,8 +294,9 @@ class SimCommander(SpiceEditor):
         self.runner.active_threads()
         return
 
-    def wait_completion(self, timeout=None,
-                        abort_all_on_timeout=False) -> bool:
+    def wait_completion(
+        self, timeout: float | None = None, abort_all_on_timeout: bool = False
+    ) -> bool:
         return self.runner.wait_completion(timeout, abort_all_on_timeout)
 
     @property
@@ -317,65 +313,3 @@ class SimCommander(SpiceEditor):
     def failSim(self):
         """*(Deprecated)* Legacy property."""
         return self.runner.failSim
-
-
-if __name__ == "__main__":
-    # get script absolute path
-    meAbsPath = os.path.dirname(os.path.realpath(__file__))
-    meAbsPath, _ = os.path.split(meAbsPath)
-    # select spice model
-    LTC = SimCommander("C:\\sandbox\\PySpice\\tests\\testfile.asc")
-    # set default arguments
-    LTC.set_parameters(res=0.001, cap=100e-6)
-    # define simulation
-    LTC.add_instructions(
-        "; Simulation settings",
-        # [".STEP PARAM Rmotor LIST 21 28"],
-        ".TRAN 3m",
-        # ".step param run 1 2 1"
-    )
-    # do parameter sweep
-    for res in range(5):
-        # LTC.runs_to_do = range(2)
-        LTC.set_parameters(ANA=res)
-        raw, log = LTC.run().wait_results()
-        _logger.debug("Raw file '%s' | Log File '%s'" % (raw, log))
-    # Sim Statistics
-    _logger.info(
-        "Successful/Total Simulations: " +
-        str(LTC.okSim) + "/" + str(LTC.runno)
-    )
-
-    def callback_function(raw_file, log_file):
-        _logger.debug(
-            "Handling the simulation data of %s, log file %s" % (
-                raw_file, log_file)
-        )
-
-    LTC = SimCommander(
-        meAbsPath +
-        "\\test_files\\testfile.asc",
-        parallel_sims=1)
-    tstart = 0
-    bias_file = None  # Initialize bias_file to prevent undefined variable error
-    for tstop in (2, 5, 8, 10):
-        tduration = tstop - tstart
-        LTC.add_instruction(
-            ".tran {}".format(tduration),
-        )
-        if tstart != 0 and bias_file is not None:  # Check that bias_file is defined
-            LTC.add_instruction(".loadbias {}".format(bias_file))
-            # Put here your parameter modifications
-            # LTC.set_parameters(param1=1, param2=2, param3=3)
-        bias_file = "sim_loadbias_%d.txt" % tstop
-        LTC.add_instruction(
-            ".savebias {} internal time={}".format(bias_file, tduration)
-        )
-        tstart = tstop
-        LTC.run(callback=callback_function)
-
-    LTC.reset_netlist()
-    LTC.add_instruction(".ac dec 40 1m 1G")
-    LTC.set_component_value("V1", "AC 1 0")
-    LTC.run(callback=callback_function)
-    LTC.wait_completion()

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding=utf-8
 
 # -------------------------------------------------------------------------------
 #    ____        _   _____ ____        _
@@ -33,11 +32,6 @@ test_pyltspice.py
 run ./test/unittests/test_pyltspice
 """
 
-from kuPyLTSpice.sim.sim_runner import SimRunner
-from kuPyLTSpice.sim.sim_batch import SimCommander
-from kuPyLTSpice.raw.raw_read import RawRead
-from kuPyLTSpice.log.ltsteps import LTSpiceLogReader
-from kuPyLTSpice.editor.spice_editor import SpiceEditor
 import os  # platform independent paths
 
 # ------------------------------------------------------------------------------
@@ -45,11 +39,17 @@ import os  # platform independent paths
 import sys  # python path handling
 import unittest  # performs test
 
+from kuPyLTSpice.editor.spice_editor import SpiceEditor
+from kuPyLTSpice.log.ltsteps import LTSpiceLogReader
+from kuPyLTSpice.raw.raw_read import RawRead
+from kuPyLTSpice.sim.sim_batch import SimCommander
+from kuPyLTSpice.sim.sim_runner import SimRunner
+
 #
 # Module libs
 
 sys.path.append(
-    os.path.abspath((os.path.dirname(os.path.abspath(__file__)) + "/../"))
+    os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../")
 )  # add project root to lib search path
 
 
@@ -93,9 +93,7 @@ class test_pyltspice(unittest.TestCase):
         self.measures = {}
 
         def processing_data(raw_file, log_file):
-            print(
-                "Handling the simulation data of %s, log file %s" % (raw_file, log_file)
-            )
+            print(f"Handling the simulation data of {raw_file}, log file {log_file}")
             self.sim_files.append((raw_file, log_file))
 
         # select spice model
@@ -118,15 +116,13 @@ class test_pyltspice(unittest.TestCase):
                 LTC.set_component_value("V1", supply_voltage)
                 LTC.set_component_value("V2", -supply_voltage)
                 # overriding the automatic netlist naming
-                run_netlist_file = "{}_{}_{}.net".format(
-                    LTC.circuit_file.name, opamp, supply_voltage
-                )
+                run_netlist_file = f"{LTC.circuit_file.name}_{opamp}_{supply_voltage}.net"
                 LTC.run(run_filename=run_netlist_file, callback=processing_data)
 
         LTC.wait_completion()
 
         # Sim Statistics
-        print("Successful/Total Simulations: " + str(LTC.okSim) + "/" + str(LTC.runno))
+        print(f"Successful/Total Simulations: {LTC.okSim}/{LTC.runno}")
         self.assertEqual(LTC.okSim, 6)
         self.assertEqual(LTC.runno, 6)
 
@@ -175,9 +171,9 @@ class test_pyltspice(unittest.TestCase):
             # LTC.runs_to_do = range(2)
             netlist.set_parameters(ANA=res)
             raw, log = LTC.run(netlist).wait_results()
-            print("Raw file '%s' | Log File '%s'" % (raw, log))
+            print(f"Raw file {raw!r} | Log File {log!r}")
         # Sim Statistics
-        print("Successful/Total Simulations: " + str(LTC.okSim) + "/" + str(LTC.runno))
+        print(f"Successful/Total Simulations: {LTC.okSim}/{LTC.runno}")
 
     @unittest.skipIf(skip_ltspice_tests, "Skip if not in windows environment")
     def test_sim_runner(self):
@@ -185,27 +181,20 @@ class test_pyltspice(unittest.TestCase):
 
         # Old legacy class that merged SpiceEditor and SimRunner
         def callback_function(raw_file, log_file):
-            print(
-                "Handling the simulation data of %s, log file %s" % (raw_file, log_file)
-            )
+            print(f"Handling the simulation data of {raw_file}, log file {log_file}")
 
         LTC = SimRunner(output_folder=test_dir + "temp/")
         SE = SpiceEditor(test_dir + "testfile.net")
         # , parallel_sims=1)
         tstart = 0
+        bias_file: str | None = None
         for tstop in (2, 5, 8, 10):
             tduration = tstop - tstart
-            SE.add_instruction(
-                ".tran {}".format(tduration),
-            )
-            if tstart != 0:
-                SE.add_instruction(".loadbias {}".format(bias_file))
-                # Put here your parameter modifications
-                # LTC.set_parameters(param1=1, param2=2, param3=3)
-            bias_file = test_dir + "sim_loadbias_%d.txt" % tstop
-            SE.add_instruction(
-                ".savebias {} internal time={}".format(bias_file, tduration)
-            )
+            SE.add_instruction(f".tran {tduration}")
+            if bias_file is not None:
+                SE.add_instruction(f".loadbias {bias_file}")
+            bias_file = f"{test_dir}sim_loadbias_{tstop}.txt"
+            SE.add_instruction(f".savebias {bias_file} internal time={tduration}")
             tstart = tstop
             LTC.run(SE, callback=callback_function)
 
@@ -443,7 +432,7 @@ class test_pyltspice(unittest.TestCase):
             4e-3,
             5e-3,
         )
-        for m, t in zip(meas, time):
+        for m, t in zip(meas, time, strict=False):
             log_value = log.get_measure_value(m)
             raw_value = vout.get_point_at(t)
             print(log_value, raw_value, log_value - raw_value)
@@ -478,7 +467,7 @@ class test_pyltspice(unittest.TestCase):
             4e-3,
             5e-3,
         )
-        for m, t in zip(meas, time):
+        for m, t in zip(meas, time, strict=False):
             print(m)
             for step, step_dict in enumerate(raw.steps):
                 log_value = log.get_measure_value(m, step)
@@ -499,13 +488,12 @@ class test_pyltspice(unittest.TestCase):
         if has_ltspice:
             LTC = SimCommander(test_dir + "AC.asc")
             raw_file, log_file = LTC.run().wait_results()
-            R1 = LTC.get_component_floatvalue("R1")
-            C1 = LTC.get_component_floatvalue("C1")
+            resistance_r1 = LTC.get_component_floatvalue("R1")
+            capacitance_c1 = LTC.get_component_floatvalue("C1")
         else:
             raw_file = test_dir + "AC_1.raw"
-            log_file = test_dir + "AC_1.log"
-            R1 = 100
-            C1 = 10e-6
+            resistance_r1 = 100
+            capacitance_c1 = 10e-6
         # Compute the RC AC response with the resistor and capacitor values from
         # the netlist.
         raw = RawRead(raw_file)
@@ -518,7 +506,7 @@ class test_pyltspice(unittest.TestCase):
             self.assertEqual(vout1, vout2)
             self.assertEqual(abs(vin), 1)
             # Calculate the magnitude of the answer Vout = Vin/(1+jwRC)
-            h = vin / (1 + 2j * pi * freq * R1 * C1)
+            h = vin / (1 + 2j * pi * freq * resistance_r1 * capacitance_c1)
             self.assertAlmostEqual(
                 abs(vout1),
                 abs(h),
@@ -540,26 +528,24 @@ class test_pyltspice(unittest.TestCase):
         if has_ltspice:
             LTC = SimCommander(test_dir + "AC - STEP.asc")
             raw_file, log_file = LTC.run().wait_results()
-            C1 = LTC.get_component_floatvalue("C1")
+            capacitance_c1 = LTC.get_component_floatvalue("C1")
         else:
             raw_file = test_dir + "AC - STEP_1.raw"
-            log_file = test_dir + "AC - STEP_1.log"
-            C1 = 159.1549e-6  # 159.1549uF
+            capacitance_c1 = 159.1549e-6  # 159.1549uF
         # Compute the RC AC response with the resistor and capacitor values from
         # the netlist.
         raw = RawRead(raw_file)
         vin_trace = raw.get_trace("V(in)")
         vout_trace = raw.get_trace("V(out)")
         for step, step_dict in enumerate(raw.steps):
-            R1 = step_dict["r1"]
-            # print(step, step_dict)
+            resistance_value = step_dict["r1"]
             for point in range(0, raw.get_len(step), 10):  # 10 times less points
                 print(point, end=" - ")
                 vout = vout_trace.get_point(point, step)
                 vin = vin_trace.get_point(point, step)
                 freq = raw.axis.get_point(point, step)
                 # Calculate the magnitude of the answer Vout = Vin/(1+jwRC)
-                h = vin / (1 + 2j * pi * freq * R1 * C1)
+                h = vin / (1 + 2j * pi * freq * resistance_value * capacitance_c1)
                 # print(freq, vout, h, vout - h)
                 self.assertAlmostEqual(
                     abs(vout),

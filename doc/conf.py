@@ -27,15 +27,17 @@ author = "Ryota Kobayashi"
 release = "1.0.0"
 
 try:
-    # Read the version from the .toml file
-    from toml import load
+    from tomllib import load as _load_toml
+except ModuleNotFoundError:
+    from toml import load as _load_toml  # type: ignore[import]
 
-    with open("../pyproject.toml") as f:
-        pyproject = load(f)
-        project = pyproject["project"]["name"]
-        release = pyproject["project"]["version"]
-        author = pyproject["project"]["authors"][0]["name"]
-except BaseException:
+try:
+    with open('../pyproject.toml', 'rb') as f:
+        pyproject = _load_toml(f)
+        project = pyproject['project']['name']
+        release = pyproject['project']['version']
+        author = pyproject['project']['authors'][0]['name']
+except Exception:
     pass
 
 
