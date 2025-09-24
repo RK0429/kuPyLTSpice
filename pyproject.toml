@@ -12,6 +12,7 @@ readme = "README.md"
 repository = "https://github.com/RK0429/kuPyLTSpice"
 homepage = "https://github.com/RK0429/kuPyLTSpice"
 keywords = ["ltspice", "simulation", "automation", "kupyltspice"]
+packages = [{ include = "kuPyLTSpice" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
