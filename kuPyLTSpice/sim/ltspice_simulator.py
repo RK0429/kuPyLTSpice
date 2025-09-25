@@ -41,7 +41,7 @@ class LTspiceCustom(Simulator):
 
     # Define the class attributes required by the Simulator base class
     spice_exe: ClassVar[list[str]] = []
-    process_name: ClassVar[str] = "XVIIx64.exe"  # Default process name for Windows
+    process_name: str = "XVIIx64.exe"  # Default process name for Windows
 
     @classmethod
     def get_default_executable(cls) -> Path:

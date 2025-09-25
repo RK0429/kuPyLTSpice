@@ -1,21 +1,5 @@
 #!/usr/bin/env python
 
-# -------------------------------------------------------------------------------
-#    ____        _   _____ ____        _
-#   |  _ \ _   _| | |_   _/ ___| _ __ (_) ___ ___
-#   | |_) | | | | |   | | \___ \| '_ \| |/ __/ _ \
-#   |  __/| |_| | |___| |  ___) | |_) | | (_|  __/
-#   |_|    \__, |_____|_| |____/| .__/|_|\___\___|
-#          |___/                |_|
-#
-# Name:        sim_batch.py
-# Purpose:     Tool used to launch LTSpice simulation in batch mode. Netlists can
-#              be updated by user instructions
-#
-# Author:      Nuno Brum (nuno.brum@gmail.com)
-#
-# Licence:     refer to the LICENSE file
-# -------------------------------------------------------------------------------
 """** This class is still maintained for backward compatibility. The user is invited to
 use the SpiceEditor and SimRunner classes instead. These give more flexibility in the
 command of simulations.**
@@ -90,13 +74,29 @@ rise, measures = log_info.dataset["rise_time"]
 The callback function is optional. If  no callback function is given, the thread is
 terminated just after the simulation is finished.
 """
-__author__ = "Nuno Canto Brum <nuno.brum@gmail.com>"
-__copyright__ = "Copyright 2020, Fribourg Switzerland"
 
+from __future__ import annotations
+
+# -------------------------------------------------------------------------------
+#    ____        _   _____ ____        _
+#   |  _ \ _   _| | |_   _/ ___| _ __ (_) ___ ___
+#   | |_) | | | | |   | | \___ \| '_ \| |/ __/ _ \
+#   |  __/| |_| | |___| |  ___) | |_) | | (_|  __/
+#   |_|    \__, |_____|_| |____/| .__/|_|\___\___|
+#          |___/                |_|
+#
+# Name:        sim_batch.py
+# Purpose:     Tool used to launch LTSpice simulation in batch mode. Netlists can
+#              be updated by user instructions
+#
+# Author:      Nuno Brum (nuno.brum@gmail.com)
+#
+# Licence:     refer to the LICENSE file
+# -------------------------------------------------------------------------------
 import logging
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, TypeVar, cast
 
 from kupicelib.editor.spice_editor import SpiceEditor
 from kupicelib.sim.process_callback import ProcessCallback
@@ -104,15 +104,22 @@ from kupicelib.sim.run_task import RunTask
 from kupicelib.sim.sim_runner import SimRunner
 from kupicelib.sim.simulator import Simulator
 
+from ..sim.ltspice_simulator import LTspice, LTspiceCustom
+
+SimulatorType = TypeVar("SimulatorType", bound="type[Simulator]")
+
+__author__ = "Nuno Canto Brum <nuno.brum@gmail.com>"
+__copyright__ = "Copyright 2020, Fribourg Switzerland"
+
 
 def _normalize_simulator_input(
-    simulator: str | Path | type[Simulator] | None,
-    default: type[Simulator],
-) -> type[Simulator]:
+    simulator: str | Path | SimulatorType | None,
+    default: SimulatorType,
+) -> SimulatorType:
     if simulator is None:
         return default
     if isinstance(simulator, str | Path):
-        return default.create_from(simulator)
+        return cast(SimulatorType, default.create_from(simulator))
     return simulator
 
 _logger = logging.getLogger("kupicelib.SimBatch")
@@ -138,8 +145,6 @@ class SimCommander(SpiceEditor):
         encoding: str = "autodetect",
         simulator: str | Path | type[Simulator] | None = None,
     ):
-        from ..sim.ltspice_simulator import LTspice  # In case no simulator is given
-
         # Convert simulator to the right type
         actual_simulator = _normalize_simulator_input(simulator, LTspice)
 
@@ -149,8 +154,11 @@ class SimCommander(SpiceEditor):
         # Handle .asc files by creating a netlist
         if netlist_file_path.suffix == ".asc":
             # Create an instance of the simulator to create the netlist
-            simulator_instance: type[Simulator] = actual_simulator.create_from(None)
-            netlist_file_path = simulator_instance.create_netlist(netlist_file_path)
+            simulator_cls = cast(
+                type[LTspiceCustom],
+                actual_simulator.create_from(None),
+            )
+            netlist_file_path = simulator_cls.create_netlist(netlist_file_path)
 
         super().__init__(netlist_file_path, encoding)
 
@@ -179,8 +187,6 @@ class SimCommander(SpiceEditor):
         :return: Nothing
         :rtype: None
         """
-        from ..sim.ltspice_simulator import LTspice
-
         # Convert spice_tool to the right type
         try:
             actual_simulator = _normalize_simulator_input(spice_tool, LTspice)

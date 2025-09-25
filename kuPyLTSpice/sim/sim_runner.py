@@ -1,21 +1,5 @@
 #!/usr/bin/env python
 
-# -------------------------------------------------------------------------------
-#    ____        _   _____ ____        _
-#   |  _ \ _   _| | |_   _/ ___| _ __ (_) ___ ___
-#   | |_) | | | | |   | | \___ \| '_ \| |/ __/ _ \
-#   |  __/| |_| | |___| |  ___) | |_) | | (_|  __/
-#   |_|    \__, |_____|_| |____/| .__/|_|\___\___|
-#          |___/                |_|
-#
-# Name:        sim_runner.py
-# Purpose:     Tool used to launch LTSpice simulation in batch mode.
-#
-# Author:      Nuno Brum (nuno.brum@gmail.com)
-#
-# Created:     23-12-2016
-# Licence:     refer to the LICENSE file
-# -------------------------------------------------------------------------------
 """Allows launching LTSpice simulations from a Python Script, thus allowing to overcome
 the 3 dimensions STEP limitation on LTSpice, update resistor values, or component
 models.
@@ -87,17 +71,38 @@ rise, measures = log_info.dataset["rise_time"]
 The callback function is optional. If  no callback function is given, the thread is
 terminated just after the simulation is finished.
 """
-__author__ = "Nuno Canto Brum <nuno.brum@gmail.com>"
-__copyright__ = "Copyright 2020, Fribourg Switzerland"
 
-__all__ = ["SimRunner"]
+from __future__ import annotations
 
+# -------------------------------------------------------------------------------
+#    ____        _   _____ ____        _
+#   |  _ \ _   _| | |_   _/ ___| _ __ (_) ___ ___
+#   | |_) | | | | |   | | \___ \| '_ \| |/ __/ _ \
+#   |  __/| |_| | |___| |  ___) | |_) | | (_|  __/
+#   |_|    \__, |_____|_| |____/| .__/|_|\___\___|
+#          |___/                |_|
+#
+# Name:        sim_runner.py
+# Purpose:     Tool used to launch LTSpice simulation in batch mode.
+#
+# Author:      Nuno Brum (nuno.brum@gmail.com)
+#
+# Created:     23-12-2016
+# Licence:     refer to the LICENSE file
+# -------------------------------------------------------------------------------
 import logging
 import sys
 from pathlib import Path
+from typing import cast
 
 from kupicelib.sim.sim_runner import SimRunner as SimRunnerBase
 from kupicelib.sim.simulator import Simulator
+
+from kuPyLTSpice.sim.ltspice_simulator import LTspice, LTspiceCustom
+
+__all__ = ["SimRunner"]
+__author__ = "Nuno Canto Brum <nuno.brum@gmail.com>"
+__copyright__ = "Copyright 2020, Fribourg Switzerland"
 
 _logger = logging.getLogger("kupicelib.SimRunner")
 
@@ -140,13 +145,11 @@ class SimRunner(SimRunnerBase):
 
         # Gets a simulator.
         # Import our custom LTspice implementation which has Mac support
-        from kuPyLTSpice.sim.ltspice_simulator import LTspice as CustomLTspice
-
         simulator_cls: type[Simulator]
         if simulator is None:
-            simulator_cls = CustomLTspice
+            simulator_cls = LTspice
         elif isinstance(simulator, str | Path):
-            simulator_cls = CustomLTspice.create_from(simulator)
+            simulator_cls = LTspice.create_from(simulator)
         else:
             assert isinstance(simulator, type)
             simulator_cls = simulator
@@ -184,7 +187,8 @@ class SimRunner(SimRunnerBase):
                     getattr(self.simulator, "executable", "unknown"),
                 )
 
-            return self.simulator.create_netlist(
+            simulator_cls = cast(type[LTspiceCustom], self.simulator)
+            return simulator_cls.create_netlist(
                 asc_file, cmd_line_switches=cmd_line_args
             )
         else:
