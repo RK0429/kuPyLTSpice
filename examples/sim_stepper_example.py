@@ -1,10 +1,16 @@
+# pyright: reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportMissingParameterType=false
+
+# pyright: reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
+
+from pathlib import Path
 
 from kuPyLTSpice import SimRunner, SpiceEditor
 from kuPyLTSpice.sim.sim_stepping import SimStepper
 
 
-def processing_data(raw_file, log_file):
+def processing_data(raw_file: Path | str, log_file: Path | str) -> str:
     print(f"Handling the simulation data of {log_file}")
+    return "processed"
 
 
 # select spice model

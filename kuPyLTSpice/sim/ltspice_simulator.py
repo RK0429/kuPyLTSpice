@@ -2,9 +2,9 @@
 
 import logging
 import os
+import platform
 import shutil
 import subprocess
-import platform
 
 # -------------------------------------------------------------------------------
 #    ____        _   _____ ____        _

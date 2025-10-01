@@ -1,4 +1,7 @@
+# pyright: reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
+
 import logging
+from pathlib import Path
 from random import random
 from time import sleep
 
@@ -14,7 +17,7 @@ if RichHandler:
     kuPyLTSpice.add_log_handler(RichHandler())
 
 
-def processing_data(raw_file, log_file):
+def processing_data(raw_file: Path | str, log_file: Path | str) -> str:
     print(f"Handling the simulation data of {raw_file}, log file {log_file}")
     time_to_sleep = random() * 5
     print(f"Sleeping for {time_to_sleep} seconds")
@@ -65,7 +68,13 @@ netlist.add_instructions(  # Adding additional instructions
     ".meas AC Fcut TRIG mag(V(out))=Gain/sqrt(2) FALL=last",
 )
 
-raw, log = runner.run(netlist, run_filename="no_callback.net").wait_results()
+task = runner.run(netlist, run_filename="no_callback.net")
+if task is None:
+    raise RuntimeError("Simulation task did not start")
+result = task.wait_results()
+if result is None:
+    raise RuntimeError("Simulation did not produce results")
+raw, log = result
 processing_data(raw, log)
 
 if use_run_now is False:

@@ -1,18 +1,32 @@
-from matplotlib import pyplot as plt
+from __future__ import annotations
 
-from kuPyLTSpice import RawRead
+from typing import TYPE_CHECKING
 
-LTR = RawRead("./testfiles/TRAN - STEP.raw")
+import matplotlib.pyplot as plt
 
-print(LTR.get_trace_names())
-print(LTR.get_raw_property())
+if TYPE_CHECKING:
+    from kupicelib.raw.raw_read import RawRead as RawReadType
+else:  # pragma: no cover
+    from kuPyLTSpice import RawRead as RawReadType
 
-IR1 = LTR.get_trace("I(R1)")
-x = LTR.get_trace("time")  # Gets the time axis
-steps = LTR.get_steps()
-for step in range(len(steps)):
-    # print(steps[step])
-    plt.plot(x.get_wave(step), IR1.get_wave(step), label=steps[step])
+RawRead = RawReadType
 
-plt.legend()  # order a legend
-plt.show()
+
+def main() -> None:
+    reader = RawRead("./testfiles/TRAN - STEP.raw")
+
+    print(reader.get_trace_names())
+    print(reader.get_raw_property())
+
+    current_trace = reader.get_trace("I(R1)")
+    time_trace = reader.get_trace("time")  # Gets the time axis
+    steps = list(reader.get_steps())
+    for index, step in enumerate(steps):
+        plt.plot(time_trace.get_wave(index), current_trace.get_wave(index), label=str(step))
+
+    plt.legend()  # order a legend
+    plt.show()
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()

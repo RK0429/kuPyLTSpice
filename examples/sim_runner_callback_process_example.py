@@ -1,5 +1,7 @@
+# pyright: reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
 
 import sys
+from pathlib import Path
 
 from kuPyLTSpice import SimRunner, SpiceEditor
 from kuPyLTSpice.sim.process_callback import (
@@ -16,7 +18,7 @@ class CallbackProc(ProcessCallback):
     """
 
     @staticmethod
-    def callback(raw_file, log_file):
+    def callback(raw_file: Path | str, log_file: Path | str, **kwargs: object) -> object:
         print(f"Handling the simulation data of {raw_file}, log file {log_file}")
         # Doing some processing here
         return f"Parsed Result of {raw_file}, log file {log_file}"
@@ -63,7 +65,13 @@ if __name__ == "__main__":
         ".meas AC Fcut TRIG mag(V(out))=Gain/sqrt(2) FALL=last",
     )
 
-    raw, log = runner.run(netlist, run_filename="no_callback.net").wait_results()
+    task = runner.run(netlist, run_filename="no_callback.net")
+    if task is None:
+        raise RuntimeError("Simulation task did not start")
+    result = task.wait_results()
+    if result is None:
+        raise RuntimeError("Simulation did not produce results")
+    raw, log = result
     CallbackProc.callback(raw, log)
 
     results = runner.wait_completion(1, abort_all_on_timeout=True)

@@ -1,3 +1,5 @@
+# pyright: reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportMissingParameterType=false
+
 from kuPyLTSpice import SpiceEditor
 
 se = SpiceEditor("./testfiles/Noise.asc")

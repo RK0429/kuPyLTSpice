@@ -1,3 +1,5 @@
+# pyright: reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportMissingParameterType=false
+
 from kuPyLTSpice import AscEditor, SimRunner
 
 # Force another simulator - uncomment for your OS or rely on auto-detection.

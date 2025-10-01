@@ -1,16 +1,27 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 
-from kuPyLTSpice import RawRead, RawWrite, Trace
+if TYPE_CHECKING:
+    from kupicelib.raw.raw_read import RawRead as RawReadType
+    from kupicelib.raw.raw_write import RawWrite as RawWriteType
+    from kupicelib.raw.raw_write import Trace as TraceType
+else:  # pragma: no cover
+    from kuPyLTSpice import RawRead as RawReadType
+    from kuPyLTSpice import RawWrite as RawWriteType
+    from kuPyLTSpice import Trace as TraceType
+
+RawRead = RawReadType
+RawWrite = RawWriteType
+Trace = TraceType
 
 TESTFILES = Path(__file__).parent / "testfiles"
 
 
-def _add_basic_traces(writer: RawWrite) -> tuple[Trace, Trace, Trace]:
+def _add_basic_traces(writer: RawWriteType) -> tuple[TraceType, TraceType, TraceType]:
     time_values = np.arange(0.0, 3e-3, 997e-11, dtype=float)
     time_trace = Trace("time", time_values.tolist())
     sine_trace = Trace("N001", np.sin(2 * np.pi * time_values * 10000).tolist())
@@ -41,13 +52,17 @@ def _read_trace_metadata(trace_path: Path) -> tuple[str, int]:
                 break
     return raw_type, wave_size
 
-def _iter_trace_data(trace_path: Path, rows: int) -> Sequence[tuple[float, float]]:
+def _iter_trace_data(trace_path: Path, rows: int) -> list[tuple[float, float]]:
     with trace_path.open(encoding="utf-8") as handle:
         for line in handle:
             if line.startswith("Time,Ampl"):
                 break
         data = np.genfromtxt(handle, dtype="float,float", delimiter=",", max_rows=rows)
-    return [tuple(map(float, row)) for row in data.tolist()]
+    result: list[tuple[float, float]] = []
+    for row in data.tolist():
+        pair = cast(tuple[float, float], tuple(map(float, row)))
+        result.append(pair)
+    return result
 
 
 def test_trc2raw() -> None:

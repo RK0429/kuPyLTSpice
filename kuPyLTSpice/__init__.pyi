@@ -11,8 +11,8 @@ from kupicelib.editor.spice_editor import (
 )
 from kupicelib.log.ltsteps import LTSpiceLogReader as _LTSpiceLogReader
 from kupicelib.raw.raw_read import RawRead as _RawRead
-from kupicelib.raw.raw_read import Trace as _Trace
 from kupicelib.raw.raw_write import RawWrite as _RawWrite
+from kupicelib.raw.raw_write import Trace as _Trace
 
 from .sim.ltspice_simulator import LTspice
 from .sim.sim_batch import SimCommander

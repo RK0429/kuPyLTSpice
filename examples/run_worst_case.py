@@ -1,44 +1,46 @@
-from kuPyLTSpice import (  # Imports the class that manipulates the asc file
-    AscEditor,
-    SimRunner,
-)
-from kuPyLTSpice.sim.tookit.worst_case import WorstCaseAnalysis
+from __future__ import annotations
 
-sallenkey = AscEditor("./testfiles/sallenkey.asc")  # Reads the asc file into memory
-runner = SimRunner(
-    output_folder="./temp_wca"
-)  # Instantiates the runner class, with the output folder already set
-wca = WorstCaseAnalysis(sallenkey, runner)  # Instantiates the Worst Case Analysis class
+from typing import TYPE_CHECKING
 
-# The following lines set the default tolerances for the components
-wca.set_tolerance("R", 0.01)  # 1% tolerance
-wca.set_tolerance("C", 0.1)  # 10% tolerance
-wca.set_tolerance(
-    "V", 0.1
-)  # 10% tolerance. For Worst Case analysis, the distribution is irrelevant
+if TYPE_CHECKING:
+    from kupicelib.editor.asc_editor import AscEditor as AscEditorType
+    from kupicelib.sim.sim_runner import SimRunner as SimRunnerType
+    from kupicelib.sim.tookit.worst_case import WorstCaseAnalysis as WorstCaseAnalysisType
+else:  # pragma: no cover
+    from kuPyLTSpice import AscEditor as AscEditorType
+    from kuPyLTSpice import SimRunner as SimRunnerType
+    from kuPyLTSpice.sim.tookit.worst_case import WorstCaseAnalysis as WorstCaseAnalysisType
 
-# Some components can have a different tolerance
-wca.set_tolerance(
-    "R1", 0.05
-)  # 5% tolerance for R1 only. This only overrides the default tolerance for R1
+AscEditor = AscEditorType
+SimRunner = SimRunnerType
+WorstCaseAnalysis = WorstCaseAnalysisType
 
-# Tolerances can be set for parameters as well.
-wca.set_parameter_deviation("Vos", 3e-4, 5e-3)
 
-# Finally the netlist is saved to a file
-wca.save_netlist("./testfiles/sallenkey_wc.asc")
+def main() -> None:
+    sallenkey = AscEditor("./testfiles/sallenkey.asc")
+    runner = SimRunner(output_folder="./temp_wca")
+    wca = WorstCaseAnalysis(sallenkey, runner)
 
-wca.run_testbench()  # Runs the simulation with splits of 100 runs each
+    wca.set_tolerance("R", 0.01)
+    wca.set_tolerance("C", 0.1)
+    wca.set_tolerance("V", 0.1)
+    wca.set_tolerance("R1", 0.05)
+    wca.set_parameter_deviation("Vos", 3e-4, 5e-3)
 
-logs = (
-    wca.read_logfiles()
-)  # Reads the log files and stores the results in the results attribute
-logs.export_data("./temp_wca/data.csv")  # Exports the data to a csv file
+    wca.save_netlist("./testfiles/sallenkey_wc.asc")
 
-print("Worst case results:")
-for param in ("fcut", "fcut_FROM"):
-    print(
-        f"{param}: min:{logs.min_measure_value(param)} max:{logs.max_measure_value(param)}"
-    )
+    wca.run_testbench()
+    logs = wca.read_logfiles()
+    logs.export_data("./temp_wca/data.csv")
 
-wca.cleanup_files()  # Deletes the temporary files
+    print("Worst case results:")
+    for param in ("fcut", "fcut_FROM"):
+        print(
+            f"{param}: min:{logs.min_measure_value(param)} max:{logs.max_measure_value(param)}"
+        )
+
+    wca.cleanup_files()
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()

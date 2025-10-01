@@ -172,7 +172,7 @@ class SimRunner(SimRunnerBase):
 
     def create_netlist(
         self, asc_file: str | Path, cmd_line_args: list[str] | None = None
-    ) -> Path | None:
+    ) -> Path:
         """Creates a .net from an .asc using the LTSpice -netlist command line."""
         if not isinstance(asc_file, Path):
             asc_file = Path(asc_file)
@@ -191,6 +191,4 @@ class SimRunner(SimRunnerBase):
             return simulator_cls.create_netlist(
                 asc_file, cmd_line_switches=cmd_line_args
             )
-        else:
-            _logger.warning(f"Unable to create the Netlist from {asc_file}")
-            return None
+        raise ValueError(f"Unable to create the Netlist from {asc_file}")

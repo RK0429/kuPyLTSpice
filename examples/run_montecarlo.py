@@ -1,60 +1,51 @@
-from kuPyLTSpice import (  # Imports the class that manipulates the asc file
-    AscEditor,
-    SimRunner,
-)
-from kuPyLTSpice.sim.tookit.montecarlo import (
-    Montecarlo,  # Imports the Montecarlo toolkit class
-)
+from __future__ import annotations
 
-sallenkey = AscEditor("./testfiles/sallenkey.asc")  # Reads the asc file into memory
-runner = SimRunner(
-    output_folder="./temp_mc"
-)  # Instantiates the runner class, with the output folder already set
-mc = Montecarlo(
-    sallenkey, runner
-)  # Instantiates the Montecarlo class, with the asc file already in memory
+from typing import TYPE_CHECKING
 
-# The following lines set the default tolerances for the components
-mc.set_tolerance("R", 0.01)  # 1% tolerance, default distribution is uniform
-mc.set_tolerance(
-    "C", 0.1, distribution="uniform"
-)  # 10% tolerance, explicit uniform distribution
-mc.set_tolerance(
-    "V", 0.1, distribution="normal"
-)  # 10% tolerance, but using a normal distribution
+if TYPE_CHECKING:
+    from kupicelib.editor.asc_editor import AscEditor as AscEditorType
+    from kupicelib.sim.sim_runner import SimRunner as SimRunnerType
+    from kupicelib.sim.tookit.montecarlo import Montecarlo as MontecarloType
+else:  # pragma: no cover
+    from kuPyLTSpice import AscEditor as AscEditorType
+    from kuPyLTSpice import SimRunner as SimRunnerType
+    from kuPyLTSpice.sim.tookit.montecarlo import Montecarlo as MontecarloType
 
-# Some components can have a different tolerance
-mc.set_tolerance(
-    "R1", 0.05
-)  # 5% tolerance for R1 only. This only overrides the default tolerance for R1
+AscEditor = AscEditorType
+SimRunner = SimRunnerType
+Montecarlo = MontecarloType
 
-# Tolerances can be set for parameters as well
-mc.set_parameter_deviation(
-    "Vos", 3e-4, 5e-3, "uniform"
-)  # The keyword 'distribution' is optional
-mc.prepare_testbench(num_runs=1000)  # Prepares the testbench for 1000 simulations
 
-# Finally the netlist is saved to a file
-mc.save_netlist("./testfiles/sallenkey_mc.net")
+def main() -> None:
+    sallenkey = AscEditor("./testfiles/sallenkey.asc")
+    runner = SimRunner(output_folder="./temp_mc")
+    mc = Montecarlo(sallenkey, runner)
 
-mc.run_testbench(runs_per_sim=100)  # Runs the simulation with splits of 100 runs each
-logs = (
-    mc.read_logfiles()
-)  # Reads the log files and stores the results in the results attribute
-# Splits the complex values into real and imaginary parts
-logs.obtain_amplitude_and_phase_from_complex_values()
-logs.export_data("./temp_mc/data_testbench.csv")  # Exports the data to a csv file
-logs.plot_histogram("fcut")  # Plots the histograms for the results
-mc.cleanup_files()  # Deletes the temporary files
+    mc.set_tolerance("R", 0.01)
+    mc.set_tolerance("C", 0.1, distribution="uniform")
+    mc.set_tolerance("V", 0.1, distribution="normal")
+    mc.set_tolerance("R1", 0.05)
+    mc.set_parameter_deviation("Vos", 3e-4, 5e-3, "uniform")
+    mc.prepare_testbench(num_runs=1000)
 
-print("=====================================")
-# Now using the second method, where the simulations are ran one by one
-mc.clear_simulation_data()  # Clears the simulation data
-mc.reset_netlist()  # Resets the netlist to the original
-mc.run_analysis(num_runs=1000)  # Runs the 1000 simulations
-logs = (
-    mc.read_logfiles()
-)  # Reads the log files and stores the results in the results attribute
-logs.export_data("./temp_mc/data_sims.csv")  # Exports the data to a csv file
-logs.plot_histogram("fcut")  # Plots the histograms for the results
-mc.cleanup_files()  # Deletes the temporary files
+    mc.save_netlist("./testfiles/sallenkey_mc.net")
+
+    mc.run_testbench(runs_per_sim=100)
+    logs = mc.read_logfiles()
+    logs.obtain_amplitude_and_phase_from_complex_values()
+    logs.export_data("./temp_mc/data_testbench.csv")
+    logs.plot_histogram("fcut")
+    mc.cleanup_files()
+
+    print("=====================================")
+    mc.clear_simulation_data()
+    mc.reset_netlist()
+    mc.run_analysis(num_runs=1000)
+    logs = mc.read_logfiles()
+    logs.export_data("./temp_mc/data_sims.csv")
+    logs.plot_histogram("fcut")
+    mc.cleanup_files()
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()

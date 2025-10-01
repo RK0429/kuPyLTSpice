@@ -1,8 +1,13 @@
 import os
 import sys
 import unittest
+from pathlib import Path
+from typing import TYPE_CHECKING
 
-import kuPyLTSpice
+if TYPE_CHECKING:
+    from kupicelib.editor.asc_editor import AscEditor as AscEditorType
+else:
+    from kuPyLTSpice import AscEditor as AscEditorType
 
 sys.path.append(
     os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../")
@@ -24,14 +29,14 @@ golden_dir = (
 class ASC_Editor_Test(unittest.TestCase):
 
     def setUp(self):
-        self.edt = kuPyLTSpice.AscEditor(test_dir + "DC sweep.asc")
+        self.edt: AscEditorType = AscEditorType(test_dir + "DC sweep.asc")
 
     def test_component_editing(self):
         self.assertEqual(
             self.edt.get_component_value("R1"), "10k", "Tested R1 Value"
         )  # add assertion here
         self.assertListEqual(
-            self.edt.get_components(),
+            list(self.edt.get_components()),
             ["Vin", "R1", "R2", "D1"],
             "Tested get_components",
         )  # add assertion here
@@ -87,10 +92,10 @@ class ASC_Editor_Test(unittest.TestCase):
             golden_dir + "test_instructions_output_1.asc",
         )
 
-    def equalFiles(self, file1, file2):
-        with open(file1) as f1:
+    def equalFiles(self, file1: str | Path, file2: str | Path) -> None:
+        with open(file1, encoding="utf-8") as f1:
             lines1 = f1.readlines()
-        with open(file2) as f2:
+        with open(file2, encoding="utf-8") as f2:
             lines2 = f2.readlines()
         for i, lines in enumerate(zip(lines1, lines2, strict=False)):
             self.assertEqual(lines[0], lines[1], f"Line {i}")
