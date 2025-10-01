@@ -97,7 +97,6 @@ from typing import cast
 
 from kupicelib.sim.sim_runner import SimRunner as SimRunnerBase
 from kupicelib.sim.simulator import Simulator
-
 from kuPyLTSpice.sim.ltspice_simulator import LTspice, LTspiceCustom
 
 __all__ = ["SimRunner"]
