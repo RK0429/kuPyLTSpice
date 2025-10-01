@@ -4,6 +4,7 @@ import logging
 import os
 import shutil
 import subprocess
+import platform
 
 # -------------------------------------------------------------------------------
 #    ____        _   _____ ____        _
@@ -130,7 +131,7 @@ class LTspiceCustom(Simulator):
 
         # Try wine-based Windows installation on non-Windows platforms
         if (
-            sys.platform in ("darwin", "linux")
+            platform.system().lower() in {"darwin", "linux"}
             and path_to_exe == cls.get_default_executable()
             and not path_to_exe.exists()
         ):
