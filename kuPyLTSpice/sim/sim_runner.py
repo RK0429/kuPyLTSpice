@@ -92,9 +92,11 @@ from __future__ import annotations
 # -------------------------------------------------------------------------------
 import logging
 import sys
+from collections.abc import Iterator
 from pathlib import Path
 from typing import cast
 
+from kupicelib.sim.sim_runner import RunResult
 from kupicelib.sim.sim_runner import SimRunner as SimRunnerBase
 from kupicelib.sim.simulator import Simulator
 
@@ -157,10 +159,8 @@ class SimRunner(SimRunnerBase):
         # Log the platform and detected simulator
         if verbose:
             _logger.info("Platform detected: %s", sys.platform)
-            _logger.info(
-                "Using simulator: %s",
-                getattr(simulator_cls, "executable", simulator_cls),
-            )
+            simulator_name = getattr(simulator_cls, "executable", simulator_cls)
+            _logger.info("Using simulator: %s", str(simulator_name))
 
         super().__init__(
             simulator=simulator_cls,
@@ -169,6 +169,8 @@ class SimRunner(SimRunnerBase):
             verbose=verbose,
             output_folder=output_folder,
         )
+        self.verbose = verbose
+        self.simulator = simulator_cls
 
     def create_netlist(
         self, asc_file: str | Path, cmd_line_args: list[str] | None = None
@@ -192,3 +194,9 @@ class SimRunner(SimRunnerBase):
                 asc_file, cmd_line_switches=cmd_line_args
             )
         raise ValueError(f"Unable to create the Netlist from {asc_file}")
+
+    def __iter__(self) -> Iterator[RunResult]:
+        return super().__iter__()
+
+    def __next__(self) -> RunResult:
+        return super().__next__()

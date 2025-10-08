@@ -1,12 +1,14 @@
-# pyright: reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
-
 import sys
 from pathlib import Path
+from typing import cast
 
-from kuPyLTSpice import SimRunner, SpiceEditor
+from kupicelib.sim.run_task import RunTask
+
+from kuPyLTSpice import SpiceEditor
 from kuPyLTSpice.sim.process_callback import (
     ProcessCallback,  # Importing the ProcessCallback class type
 )
+from kuPyLTSpice.sim.sim_runner import SimRunner
 
 sys.path.insert(0, "..")  # This is to allow the import from the PyLTSpice folder
 
@@ -27,7 +29,7 @@ class CallbackProc(ProcessCallback):
 if __name__ == "__main__":
     from kuPyLTSpice.sim.ltspice_simulator import LTspice
 
-    runner = SimRunner(
+    runner: SimRunner = SimRunner(
         output_folder="./temp_batch4", simulator=LTspice
     )  # Configures the simulator to use and output
     # folder
@@ -51,11 +53,18 @@ if __name__ == "__main__":
             netlist.set_component_value("V1", supply_voltage)
             netlist.set_component_value("V2", -supply_voltage)
             # overriding the automatic netlist naming
-            run_netlist_file = f"{netlist.netlist_file.stem}_{opamp}_{supply_voltage}.net"
+            circuit_file = netlist.circuit_file
+            run_netlist_file = f"{circuit_file.stem}_{opamp}_{supply_voltage}.net"
             runner.run(netlist, run_filename=run_netlist_file, callback=CallbackProc)
 
     for result in runner:
-        print(result)  # Prints the result of the callback function
+        if not isinstance(result, tuple):
+            print(result)
+            continue
+        raw_file, log_file = cast(tuple[Path | None, Path | None], result)
+        if raw_file is None or log_file is None:
+            continue
+        print(f"Simulation outputs: {raw_file}, {log_file}")
 
     netlist.reset_netlist()
     netlist.add_instructions(  # Adding additional instructions
@@ -65,16 +74,18 @@ if __name__ == "__main__":
         ".meas AC Fcut TRIG mag(V(out))=Gain/sqrt(2) FALL=last",
     )
 
-    task = runner.run(netlist, run_filename="no_callback.net")
+    task: RunTask | None = runner.run(netlist, run_filename="no_callback.net")
     if task is None:
         raise RuntimeError("Simulation task did not start")
     result = task.wait_results()
-    if result is None:
+    if not isinstance(result, tuple):
         raise RuntimeError("Simulation did not produce results")
-    raw, log = result
+    raw, log = cast(tuple[Path | None, Path | None], result)
+    if raw is None or log is None:
+        raise RuntimeError("Simulation did not produce output files")
     CallbackProc.callback(raw, log)
 
-    results = runner.wait_completion(1, abort_all_on_timeout=True)
+    results: bool = runner.wait_completion(1, abort_all_on_timeout=True)
 
     # Sim Statistics
     print(f"Successful/Total Simulations: {runner.okSim}/{runner.runno}")

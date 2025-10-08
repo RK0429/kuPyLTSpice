@@ -1,5 +1,3 @@
-# pyright: reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportMissingParameterType=false
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -9,10 +7,10 @@ from kuPyLTSpice.log.ltsteps import LTSpiceLogReader
 
 def main() -> None:
     log_path = Path("./testfiles/Batch_Test_AD820_15.log")
-    data = LTSpiceLogReader(log_path)
+    data = LTSpiceLogReader(str(log_path))
 
-    step_names = data.get_step_vars()
-    measure_names = data.get_measure_names()
+    step_names: list[str] = data.get_step_vars()
+    measure_names: list[str] = data.get_measure_names()
 
     print("Number of steps  :", data.step_count)
     header_steps = " ".join(f"{step:15s}" for step in step_names)

@@ -72,7 +72,7 @@ class LTspiceCustom(Simulator):
     @classmethod
     def create_from(
         cls,
-        path_to_exe: str | Path | PathLike[str] | None,
+        path_to_exe: str | Path | PathLike[str] | Sequence[str] | None,
         process_name: str | None = None,
     ) -> type["LTspiceCustom"]:
         """Creates a simulator class from a path to the simulator executable.
@@ -82,6 +82,10 @@ class LTspiceCustom(Simulator):
 
         Returns:     Simulator: A new LTspice simulator instance
         """
+        if isinstance(path_to_exe, Sequence) and not isinstance(
+            path_to_exe, str | Path | PathLike
+        ):
+            return super().create_from(path_to_exe, process_name)
         # Use default executable if none provided
         if path_to_exe is None:
             path_to_exe = cls.get_default_executable()

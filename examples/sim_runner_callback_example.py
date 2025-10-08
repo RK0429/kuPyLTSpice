@@ -1,16 +1,18 @@
-# pyright: reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
-
 import logging
 from pathlib import Path
 from random import random
 from time import sleep
+from typing import cast
+
+from kupicelib.sim.run_task import RunTask
 
 try:
     from rich.logging import RichHandler
 except ImportError:
     RichHandler = None
 import kuPyLTSpice
-from kuPyLTSpice import AscEditor, SimRunner
+from kuPyLTSpice import AscEditor
+from kuPyLTSpice.sim.sim_runner import SimRunner
 
 kuPyLTSpice.set_log_level(logging.DEBUG)
 if RichHandler:
@@ -25,7 +27,7 @@ def processing_data(raw_file: Path | str, log_file: Path | str) -> str:
     return "This is the result passed to the iterator"
 
 
-runner = SimRunner(
+runner: SimRunner = SimRunner(
     output_folder="./temp_batch3"
 )  # Configures the simulator to use and output
 # folder
@@ -57,8 +59,14 @@ for opamp in ("AD712", "AD820"):
         else:
             runner.run(netlist, run_filename=run_netlist_file, callback=processing_data)
 
-for results in runner:
-    print(results)
+for result in runner:
+    if not isinstance(result, tuple):
+        print(result)
+        continue
+    raw_file, log_file = cast(tuple[Path | None, Path | None], result)
+    if raw_file is None or log_file is None:
+        continue
+    print(raw_file, log_file)
 
 netlist.reset_netlist()
 netlist.add_instructions(  # Adding additional instructions
@@ -68,17 +76,19 @@ netlist.add_instructions(  # Adding additional instructions
     ".meas AC Fcut TRIG mag(V(out))=Gain/sqrt(2) FALL=last",
 )
 
-task = runner.run(netlist, run_filename="no_callback.net")
+task: RunTask | None = runner.run(netlist, run_filename="no_callback.net")
 if task is None:
     raise RuntimeError("Simulation task did not start")
 result = task.wait_results()
-if result is None:
+if not isinstance(result, tuple):
     raise RuntimeError("Simulation did not produce results")
-raw, log = result
+raw, log = cast(tuple[Path | None, Path | None], result)
+if raw is None or log is None:
+    raise RuntimeError("Simulation did not produce output files")
 processing_data(raw, log)
 
 if use_run_now is False:
-    results = runner.wait_completion(1, abort_all_on_timeout=True)
+    results: bool = runner.wait_completion(1, abort_all_on_timeout=True)
 
     # Sim Statistics
     print(f"Successful/Total Simulations: {runner.okSim}/{runner.runno}")

@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-# pyright: reportGeneralTypeIssues=false, reportUnknownParameterType=false, reportMissingParameterType=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportOptionalMemberAccess=false, reportUnnecessaryIsInstance=false, reportUnusedVariable=false, reportArgumentType=false
-
 # -------------------------------------------------------------------------------
 #    ____        _   _____ ____        _
 #   |  _ \ _   _| | |_   _/ ___| _ __ (_) ___ ___
@@ -17,28 +15,19 @@
 #
 # Licence:     refer to the LICENSE file
 # -------------------------------------------------------------------------------
-"""@author:        Nuno Brum.
+from __future__ import annotations
 
-@copyright:     Copyright 2022 @credits:       nunobrum
-
-@license:       GPLv3 @maintainer:    Nuno Brum @email:         me@nunobrum.com
-
-@
-
-file:
-test_pyltspice.py
-@date:          2022-09-19
-
-@note           pyltspice ltsteps + sim_commander + raw_read unit test
-run ./test/unittests/test_pyltspice
-"""
-
+# pyright: reportGeneralTypeIssues=false, reportUnknownParameterType=false, reportMissingParameterType=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportOptionalMemberAccess=false, reportUnnecessaryIsInstance=false, reportUnusedVariable=false, reportArgumentType=false
+#
+# Original author: Nuno Brum (nuno.brum@gmail.com)
 import os  # platform independent paths
 
 # ------------------------------------------------------------------------------
 # Python Libs
 import sys  # python path handling
 import unittest  # performs test
+
+from kupicelib.log.logfile_data import LTComplex
 
 from kuPyLTSpice.editor.spice_editor import SpiceEditor
 from kuPyLTSpice.log.ltsteps import LTSpiceLogReader
@@ -145,11 +134,19 @@ class test_pyltspice(unittest.TestCase):
         log = LTSpiceLogReader(log_file)
         for measure in log.get_measure_names():
             print(measure, "=", log.get_measure_value(measure))
-        self.assertEqual(log.get_measure_value("fcutac"), 8479370.0)
-        vout1m = log.get_measure_value("vout1m")
-        self.assertEqual(vout1m.mag_db(), 6.02059)
-        self.assertAlmostEqual(vout1m.ph_rad(), 0, 5)
-        self.assertEqual(log.get_measure_value("vout1m").mag_db(), 6.02059)
+        fcutac_value = log.get_measure_value("fcutac")
+        if not isinstance(fcutac_value, int | float):
+            self.fail(
+                f"Expected numeric fcutac value, got {type(fcutac_value)!r}"
+            )
+        self.assertEqual(float(fcutac_value), 8479370.0)
+        vout1m_value = log.get_measure_value("vout1m")
+        if not isinstance(vout1m_value, LTComplex):
+            self.fail(
+                f"Expected LTComplex measure for vout1m, got {type(vout1m_value)!r}"
+            )
+        self.assertEqual(vout1m_value.mag_db(), 6.02059)
+        self.assertAlmostEqual(vout1m_value.ph_rad(), 0, 5)
 
     @unittest.skipIf(skip_ltspice_tests, "Skip if not in windows environment")
     def test_run_from_spice_editor(self):
@@ -436,9 +433,20 @@ class test_pyltspice(unittest.TestCase):
         for m, t in zip(meas, time, strict=False):
             log_value = log.get_measure_value(m)
             raw_value = vout.get_point_at(t)
-            print(log_value, raw_value, log_value - raw_value)
+            if not isinstance(log_value, int | float):
+                self.fail(f"Expected numeric measure for {m}, got {type(log_value)!r}")
+            if not isinstance(raw_value, int | float):
+                self.fail(
+                    f"Expected numeric raw value at {t}, got {type(raw_value)!r}"
+                )
+            log_value_float = float(log_value)
+            raw_value_float = float(raw_value)
+            print(log_value_float, raw_value_float, log_value_float - raw_value_float)
             self.assertAlmostEqual(
-                log_value, raw_value, 2, "Mismatch between log file and raw file"
+                log_value_float,
+                raw_value_float,
+                2,
+                "Mismatch between log file and raw file",
             )
 
     @unittest.skipIf(False, "Execute All")
@@ -473,12 +481,32 @@ class test_pyltspice(unittest.TestCase):
             for step, step_dict in enumerate(raw.steps):
                 log_value = log.get_measure_value(m, step)
                 raw_value = vout.get_point_at(t, step)
-                print(step, step_dict, log_value, raw_value, log_value - raw_value)
+                if not isinstance(log_value, int | float):
+                    self.fail(
+                        f"Expected numeric measure for {m} step {step}, got {type(log_value)!r}"
+                    )
+                if not isinstance(raw_value, int | float):
+                    self.fail(
+                        "Expected numeric waveform value for "
+                        f"{m} at step {step}, got {type(raw_value)!r}"
+                    )
+                log_value_float = float(log_value)
+                raw_value_float = float(raw_value)
+                print(
+                    step,
+                    step_dict,
+                    log_value_float,
+                    raw_value_float,
+                    log_value_float - raw_value_float,
+                )
                 self.assertAlmostEqual(
-                    log_value,
-                    raw_value,
+                    log_value_float,
+                    raw_value_float,
                     2,
-                    f"Mismatch between log file and raw file in step :{step_dict} measure: {m} ",
+                    (
+                        "Mismatch between log file and raw file in step "
+                        f":{step_dict} measure: {m} "
+                    ),
                 )
 
     @unittest.skipIf(False, "Execute All")
