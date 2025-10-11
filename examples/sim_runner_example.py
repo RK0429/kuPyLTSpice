@@ -1,4 +1,10 @@
 # pyright: reportAttributeAccessIssue=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportMissingParameterType=false
+from __future__ import annotations
+
+from pathlib import Path
+from typing import TypeGuard
+
+from kupicelib.sim.sim_runner import RunResult
 
 from kuPyLTSpice import SimRunner, SpiceEditor
 
@@ -29,7 +35,14 @@ for opamp in ("AD712", "AD820"):
         print(f"simulating OpAmp {opamp} Voltage {supply_voltage}")
         LTC.run(netlist)
 
-for raw, log in LTC:
+def is_result_pair(value: RunResult) -> TypeGuard[tuple[Path | None, Path | None]]:
+    return isinstance(value, tuple) and len(value) == 2
+
+
+for result in LTC:
+    if not is_result_pair(result):
+        continue
+    raw, log = result
     print(f"Raw file: {raw}, Log file: {log}")
     # do something with the data
     # raw_data = RawRead(raw)
